@@ -1,0 +1,88 @@
+#include <gtest/gtest.h>
+
+#include <vector>
+#include <memory>
+#include <chrono>
+#include <algorithm>
+#include <cstdint>
+
+#include "core/perf/include/perf.hpp"
+#include "core/task/include/task.hpp"
+#include "seq/bessonov_e_radix_sort_simple_merging/include/ops_seq.hpp"
+
+TEST(bessonov_e_radix_sort, test_pipeline_run) {
+  const int SIZE = 10000000;
+  std::vector<double> input_vector(SIZE);
+  // Заполняем вектор числами в обратном порядке (для имитации неотсортированного массива)
+  for (int i = 0; i < SIZE; i++) {
+    input_vector[i] = static_cast<double>(SIZE - i);
+  }
+  std::vector<double> out(SIZE, 0.0);
+
+  // Подготовка эталонного результата с помощью std::sort
+  std::vector<double> reference = input_vector;
+  std::sort(reference.begin(), reference.end());
+
+  auto task_data = std::make_shared<ppc::core::TaskData>();
+  task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
+  task_data->inputs_count.emplace_back(input_vector.size());
+  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(out.data()));
+  task_data->outputs_count.emplace_back(out.size());
+
+  auto test_task = std::make_shared<bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential>(task_data);
+
+  auto perf_attr = std::make_shared<ppc::core::PerfAttr>();
+  perf_attr->num_running = 10;
+  const auto t0 = std::chrono::high_resolution_clock::now();
+  perf_attr->current_timer = [t0]() {
+    auto current_time_point = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time_point - t0).count();
+    return static_cast<double>(duration) * 1e-9;
+  };
+
+  auto perf_results = std::make_shared<ppc::core::PerfResults>();
+  auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task);
+  perf_analyzer->PipelineRun(perf_attr, perf_results);
+  ppc::core::Perf::PrintPerfStatistic(perf_results);
+
+  ASSERT_EQ(out, reference);
+}
+
+// Тест с использованием TaskRun
+TEST(bessonov_e_radix_sort, test_task_run) {
+  const int SIZE = 10000000;
+  std::vector<double> input_vector(SIZE);
+  // Заполняем вектор числами в обратном порядке
+  for (int i = 0; i < SIZE; i++) {
+    input_vector[i] = static_cast<double>(SIZE - i);
+  }
+  std::vector<double> out(SIZE, 0.0);
+
+  // Подготовка эталонного результата
+  std::vector<double> reference = input_vector;
+  std::sort(reference.begin(), reference.end());
+
+  auto task_data = std::make_shared<ppc::core::TaskData>();
+  task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
+  task_data->inputs_count.emplace_back(input_vector.size());
+  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(out.data()));
+  task_data->outputs_count.emplace_back(out.size());
+
+  auto test_task = std::make_shared<bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential>(task_data);
+
+  auto perf_attr = std::make_shared<ppc::core::PerfAttr>();
+  perf_attr->num_running = 10;
+  const auto t0 = std::chrono::high_resolution_clock::now();
+  perf_attr->current_timer = [t0]() {
+    auto current_time_point = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time_point - t0).count();
+    return static_cast<double>(duration) * 1e-9;
+  };
+
+  auto perf_results = std::make_shared<ppc::core::PerfResults>();
+  auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task);
+  perf_analyzer->TaskRun(perf_attr, perf_results);
+  ppc::core::Perf::PrintPerfStatistic(perf_results);
+
+  ASSERT_EQ(out, reference);
+}
