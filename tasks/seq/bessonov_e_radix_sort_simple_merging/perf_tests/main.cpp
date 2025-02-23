@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <memory>
-#include <chrono>
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 #include "core/perf/include/perf.hpp"
