@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <vector>
 #include <memory>
 #include <chrono>
 #include <algorithm>
 #include <cstdint>
+#include <vector>
 
 #include "core/perf/include/perf.hpp"
 #include "core/task/include/task.hpp"

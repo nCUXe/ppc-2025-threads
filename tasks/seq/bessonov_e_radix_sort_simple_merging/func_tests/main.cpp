@@ -3,7 +3,6 @@
 #include "core/task/include/task.hpp"
 #include "seq/bessonov_e_radix_sort_simple_merging/include/ops_seq.hpp"
 
-
 TEST(bessonov_e_radix_sort_simple_merging_seq, OrdinaryTest) {
   std::vector<double> input_vector = {3.4, 1.2, 0.5, 7.8, 2.3, 4.5, 6.7, 8.9, 1.0, 0.2, 5.6, 4.3, 9.1, 1.5, 3.0};
   std::vector<double> out(input_vector.size(), 0.0);

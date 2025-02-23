@@ -2,10 +2,9 @@
 
 #include <cstdint>
 #include <cstring>
-#include <cstdint>
+#include <memory>
 #include <utility>
 #include <vector>
-#include <memory>
 
 #include "core/task/include/task.hpp"
 

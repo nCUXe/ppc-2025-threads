@@ -1,6 +1,5 @@
 #include "seq/bessonov_e_radix_sort_simple_merging/include/ops_seq.hpp"
 
-
 bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::PreProcessingImpl() {
   unsigned int input_size = task_data->inputs_count[0];
   auto* in_ptr = reinterpret_cast<double*>(task_data->inputs[0]);
