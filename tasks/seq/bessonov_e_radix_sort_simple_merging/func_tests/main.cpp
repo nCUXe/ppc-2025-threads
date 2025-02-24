@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <algorithm>
 #include <random>
 #include <vector>
 

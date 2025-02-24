@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <memory>
 #include <utility>
 #include <vector>
 
@@ -29,7 +28,7 @@ bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::RunImpl() {
   for (size_t i = 0; i < n; i++) {
     uint64_t b = 0;
     std::memcpy(&b, &input_[i], sizeof(double));
-    if ((b & (1ULL << 63)) != 0u) {
+    if ((b & (1ULL << 63)) != 0ULL) {
       b = ~b;
     } else {
       b ^= (1ULL << 63);
@@ -46,14 +45,14 @@ bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::RunImpl() {
     std::vector<size_t> count(radix, 0);
 
     for (size_t i = 0; i < n; i++) {
-      int digit = (bits[i] >> shift) & 0xFF;
+      int digit = static_cast<int>((bits[i] >> shift) & 0xFF);
       count[digit]++;
     }
     for (int i = 1; i < radix; i++) {
       count[i] += count[i - 1];
     }
     for (int i = n - 1; i >= 0; i--) {
-      int digit = (bits[i] >> shift) & 0xFF;
+      int digit = static_cast<int>((bits[i] >> shift) & 0xFF);
       temp[--count[digit]] = bits[i];
     }
     bits.swap(temp);
@@ -61,12 +60,12 @@ bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::RunImpl() {
 
   for (size_t i = 0; i < n; i++) {
     uint64_t b = bits[i];
-    if ((b & (1ULL << 63)) != 0u) {
+    if ((b & (1ULL << 63)) != 0ULL) {
       b ^= (1ULL << 63);
     } else {
       b = ~b;
     }
-    double d = NAN;
+    double d = 0.0;
     std::memcpy(&d, &b, sizeof(double));
     output_[i] = d;
   }
