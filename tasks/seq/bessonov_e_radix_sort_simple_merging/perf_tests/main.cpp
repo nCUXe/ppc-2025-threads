@@ -11,21 +11,21 @@
 #include "seq/bessonov_e_radix_sort_simple_merging/include/ops_seq.hpp"
 
 TEST(bessonov_e_radix_sort_simple_merging_seq, test_pipeline_run) {
-  const int SIZE = 10000000;
-  std::vector<double> input_vector(SIZE);
-  for (int i = 0; i < SIZE; i++) {
-    input_vector[i] = static_cast<double>(SIZE - i);
+  const int n = 10000000;
+  std::vector<double> input_vector(n);
+  for (int i = 0; i < n; i++) {
+    input_vector[i] = static_cast<double>(n - i);
   }
-  std::vector<double> out(SIZE, 0.0);
+  std::vector<double> output_vector(n, 0.0);
 
-  std::vector<double> reference = input_vector;
-  std::sort(reference.begin(), reference.end());
+  std::vector<double> result_vector = input_vector;
+  std::sort(result_vector.begin(), result_vector.end());
 
   auto task_data = std::make_shared<ppc::core::TaskData>();
   task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
   task_data->inputs_count.emplace_back(input_vector.size());
-  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(out.data()));
-  task_data->outputs_count.emplace_back(out.size());
+  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
+  task_data->outputs_count.emplace_back(output_vector.size());
 
   auto test_task = std::make_shared<bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential>(task_data);
 
@@ -43,25 +43,25 @@ TEST(bessonov_e_radix_sort_simple_merging_seq, test_pipeline_run) {
   perf_analyzer->PipelineRun(perf_attr, perf_results);
   ppc::core::Perf::PrintPerfStatistic(perf_results);
 
-  ASSERT_EQ(out, reference);
+  ASSERT_EQ(output_vector, result_vector);
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_seq, test_task_run) {
-  const int SIZE = 10000000;
-  std::vector<double> input_vector(SIZE);
-  for (int i = 0; i < SIZE; i++) {
-    input_vector[i] = static_cast<double>(SIZE - i);
+  const int n = 10000000;
+  std::vector<double> input_vector(n);
+  for (int i = 0; i < n; i++) {
+    input_vector[i] = static_cast<double>(n - i);
   }
-  std::vector<double> out(SIZE, 0.0);
+  std::vector<double> output_vector(n, 0.0);
 
-  std::vector<double> reference = input_vector;
-  std::sort(reference.begin(), reference.end());
+  std::vector<double> result_vector = input_vector;
+  std::sort(result_vector.begin(), result_vector.end());
 
   auto task_data = std::make_shared<ppc::core::TaskData>();
   task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
   task_data->inputs_count.emplace_back(input_vector.size());
-  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(out.data()));
-  task_data->outputs_count.emplace_back(out.size());
+  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
+  task_data->outputs_count.emplace_back(output_vector.size());
 
   auto test_task = std::make_shared<bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential>(task_data);
 
@@ -79,5 +79,5 @@ TEST(bessonov_e_radix_sort_simple_merging_seq, test_task_run) {
   perf_analyzer->TaskRun(perf_attr, perf_results);
   ppc::core::Perf::PrintPerfStatistic(perf_results);
 
-  ASSERT_EQ(out, reference);
+  ASSERT_EQ(output_vector, result_vector);
 }
