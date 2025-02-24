@@ -10,7 +10,7 @@
 #include "core/task/include/task.hpp"
 #include "seq/bessonov_e_radix_sort_simple_merging/include/ops_seq.hpp"
 
-TEST(bessonov_e_radix_sort, test_pipeline_run) {
+TEST(bessonov_e_radix_sort_simple_merging_seq, test_pipeline_run) {
   const int SIZE = 10000000;
   std::vector<double> input_vector(SIZE);
   for (int i = 0; i < SIZE; i++) {
@@ -46,7 +46,7 @@ TEST(bessonov_e_radix_sort, test_pipeline_run) {
   ASSERT_EQ(out, reference);
 }
 
-TEST(bessonov_e_radix_sort, test_task_run) {
+TEST(bessonov_e_radix_sort_simple_merging_seq, test_task_run) {
   const int SIZE = 10000000;
   std::vector<double> input_vector(SIZE);
   for (int i = 0; i < SIZE; i++) {
