@@ -1,5 +1,12 @@
 #include "seq/bessonov_e_radix_sort_simple_merging/include/ops_seq.hpp"
 
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <memory>
+#include <utility>
+#include <vector>
+
 bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::PreProcessingImpl() {
   unsigned int input_size = task_data->inputs_count[0];
   auto* in_ptr = reinterpret_cast<double*>(task_data->inputs[0]);
@@ -20,9 +27,9 @@ bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::RunImpl() {
   std::vector<uint64_t> bits(n);
 
   for (size_t i = 0; i < n; i++) {
-    uint64_t b;
+    uint64_t b = 0;
     std::memcpy(&b, &input_[i], sizeof(double));
-    if (b & (1ULL << 63)) {
+    if ((b & (1ULL << 63)) != 0u) {
       b = ~b;
     } else {
       b ^= (1ULL << 63);
@@ -30,19 +37,19 @@ bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::RunImpl() {
     bits[i] = b;
   }
 
-  const int RADIX = 256;
-  const int PASSES = 8;
+  const int radix = 256;
+  const int passes = 8;
   std::vector<uint64_t> temp(n);
 
-  for (int pass = 0; pass < PASSES; pass++) {
+  for (int pass = 0; pass < passes; pass++) {
     int shift = pass * 8;
-    std::vector<size_t> count(RADIX, 0);
+    std::vector<size_t> count(radix, 0);
 
     for (size_t i = 0; i < n; i++) {
       int digit = (bits[i] >> shift) & 0xFF;
       count[digit]++;
     }
-    for (int i = 1; i < RADIX; i++) {
+    for (int i = 1; i < radix; i++) {
       count[i] += count[i - 1];
     }
     for (int i = n - 1; i >= 0; i--) {
@@ -54,12 +61,12 @@ bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::RunImpl() {
 
   for (size_t i = 0; i < n; i++) {
     uint64_t b = bits[i];
-    if (b & (1ULL << 63)) {
+    if ((b & (1ULL << 63)) != 0u) {
       b ^= (1ULL << 63);
     } else {
       b = ~b;
     }
-    double d;
+    double d = NAN;
     std::memcpy(&d, &b, sizeof(double));
     output_[i] = d;
   }

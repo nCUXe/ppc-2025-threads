@@ -1,6 +1,11 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <algorithm>
 #include <random>
+#include <vector>
 
 #include "core/task/include/task.hpp"
 #include "seq/bessonov_e_radix_sort_simple_merging/include/ops_seq.hpp"
@@ -105,7 +110,7 @@ TEST(bessonov_e_radix_sort_simple_merging_seq, RandomVectorTest) {
   std::vector<double> output_vector(n, 0.0);
 
   std::vector<double> result_vector = input_vector;
-  std::sort(result_vector.begin(), result_vector.end());
+  std::ranges::sort(result_vector);
 
   auto task_data = std::make_shared<ppc::core::TaskData>();
   task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));

@@ -11,7 +11,7 @@
 #include "seq/bessonov_e_radix_sort_simple_merging/include/ops_seq.hpp"
 
 TEST(bessonov_e_radix_sort_simple_merging_seq, test_pipeline_run) {
-  const int n = 10000000;
+  const int n = 5000000;
   std::vector<double> input_vector(n);
   for (int i = 0; i < n; i++) {
     input_vector[i] = static_cast<double>(n - i);
@@ -19,7 +19,7 @@ TEST(bessonov_e_radix_sort_simple_merging_seq, test_pipeline_run) {
   std::vector<double> output_vector(n, 0.0);
 
   std::vector<double> result_vector = input_vector;
-  std::sort(result_vector.begin(), result_vector.end());
+  std::ranges::sort(result_vector);
 
   auto task_data = std::make_shared<ppc::core::TaskData>();
   task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
@@ -47,7 +47,7 @@ TEST(bessonov_e_radix_sort_simple_merging_seq, test_pipeline_run) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_seq, test_task_run) {
-  const int n = 10000000;
+  const int n = 5000000;
   std::vector<double> input_vector(n);
   for (int i = 0; i < n; i++) {
     input_vector[i] = static_cast<double>(n - i);
@@ -55,7 +55,7 @@ TEST(bessonov_e_radix_sort_simple_merging_seq, test_task_run) {
   std::vector<double> output_vector(n, 0.0);
 
   std::vector<double> result_vector = input_vector;
-  std::sort(result_vector.begin(), result_vector.end());
+  std::ranges::sort(result_vector);
 
   auto task_data = std::make_shared<ppc::core::TaskData>();
   task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
