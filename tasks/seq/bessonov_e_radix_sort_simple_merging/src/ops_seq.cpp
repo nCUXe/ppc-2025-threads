@@ -50,6 +50,7 @@ bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::RunImpl() {
     for (int i = 1; i < radix; i++) {
       count[i] += count[i - 1];
     }
+
     for (size_t i = n; i-- > 0; ) {
       int digit = static_cast<int>((bits[i] >> shift) & 0xFF);
       temp[--count[digit]] = bits[i];
