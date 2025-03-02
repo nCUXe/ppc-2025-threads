@@ -3,10 +3,10 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <random>
 #include <vector>
-#include <limits>
 
 #include "core/task/include/task.hpp"
 #include "seq/bessonov_e_radix_sort_simple_merging/include/ops_seq.hpp"
