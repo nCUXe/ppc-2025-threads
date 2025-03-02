@@ -126,3 +126,78 @@ TEST(bessonov_e_radix_sort_simple_merging_seq, RandomVectorTest) {
 
   ASSERT_EQ(output_vector, result_vector);
 }
+
+TEST(bessonov_e_radix_sort_simple_merging_seq, AllSameElementsTest) {
+  std::vector<double> input_vector = {3.14, 3.14, 3.14, 3.14};
+  std::vector<double> output_vector(input_vector.size(), 0.0);
+  std::vector<double> result_vector = {3.14, 3.14, 3.14, 3.14};
+
+  auto task_data = std::make_shared<ppc::core::TaskData>();
+  task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
+  task_data->inputs_count.emplace_back(input_vector.size());
+  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
+  task_data->outputs_count.emplace_back(output_vector.size());
+
+  bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential test_task(task_data);
+  ASSERT_TRUE(test_task.Validation());
+  test_task.PreProcessing();
+  test_task.Run();
+  test_task.PostProcessing();
+
+  ASSERT_EQ(output_vector, result_vector);
+}
+
+TEST(bessonov_e_radix_sort_simple_merging_seq, ExtremeValuesTest) {
+  std::vector<double> input_vector = {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest(), 0.0,
+                                      -42.5, 100.0};
+  std::vector<double> output_vector(input_vector.size(), 0.0);
+  std::vector<double> result_vector = {std::numeric_limits<double>::lowest(), -42.5, 0.0, 100.0,
+                                       std::numeric_limits<double>::max()};
+
+  auto task_data = std::make_shared<ppc::core::TaskData>();
+  task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
+  task_data->inputs_count.emplace_back(input_vector.size());
+  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
+  task_data->outputs_count.emplace_back(output_vector.size());
+
+  bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential test_task(task_data);
+  ASSERT_TRUE(test_task.Validation());
+  test_task.PreProcessing();
+  test_task.Run();
+  test_task.PostProcessing();
+
+  ASSERT_EQ(output_vector, result_vector);
+}
+
+TEST(bessonov_e_radix_sort_simple_merging_seq, TinyNumbersTest) {
+  std::vector<double> input_vector = {1e-10, -1e-10, 1e-20, -1e-20};
+  std::vector<double> output_vector(input_vector.size(), 0.0);
+  std::vector<double> result_vector = {-1e-10, -1e-20, 1e-20, 1e-10};
+
+  auto task_data = std::make_shared<ppc::core::TaskData>();
+  task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
+  task_data->inputs_count.emplace_back(input_vector.size());
+  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
+  task_data->outputs_count.emplace_back(output_vector.size());
+
+  bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential test_task(task_data);
+  ASSERT_TRUE(test_task.Validation());
+  test_task.PreProcessing();
+  test_task.Run();
+  test_task.PostProcessing();
+
+  ASSERT_EQ(output_vector, result_vector);
+}
+
+TEST(bessonov_e_radix_sort_simple_merging_seq, InvalidInputOutputSizeTest) {
+  std::vector<double> input = {1.0, 2.0, 3.0};
+  std::vector<double> output(2, 0.0);
+  auto task_data = std::make_shared<ppc::core::TaskData>();
+  task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input.data()));
+  task_data->inputs_count.emplace_back(input.size());
+  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output.data()));
+  task_data->outputs_count.emplace_back(output.size());
+
+  bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential test_task(task_data);
+  ASSERT_FALSE(test_task.Validation());
+}
