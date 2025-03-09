@@ -45,26 +45,6 @@ TEST(bessonov_e_radix_sort_simple_merging_seq, FirstTest) {
   ASSERT_EQ(output_vector, result_vector);
 }
 
-TEST(bessonov_e_radix_sort_simple_merging_seq, EmptyTest) {
-  std::vector<double> input_vector;
-  std::vector<double> output_vector;
-  std::vector<double> result_vector;
-
-  auto task_data = std::make_shared<ppc::core::TaskData>();
-  task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
-  task_data->inputs_count.emplace_back(input_vector.size());
-  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
-  task_data->outputs_count.emplace_back(output_vector.size());
-
-  bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential test_task(task_data);
-  ASSERT_TRUE(test_task.Validation());
-  test_task.PreProcessing();
-  test_task.Run();
-  test_task.PostProcessing();
-
-  ASSERT_EQ(output_vector, result_vector);
-}
-
 TEST(bessonov_e_radix_sort_simple_merging_seq, SingleElementTest) {
   std::vector<double> input_vector = {42.0};
   std::vector<double> output_vector(1, 0.0);
@@ -198,6 +178,21 @@ TEST(bessonov_e_radix_sort_simple_merging_seq, InvalidInputOutputSizeTest) {
   task_data->inputs_count.emplace_back(input.size());
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output.data()));
   task_data->outputs_count.emplace_back(output.size());
+
+  bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential test_task(task_data);
+  ASSERT_FALSE(test_task.Validation());
+}
+
+TEST(bessonov_e_radix_sort_simple_merging_seq, ValidationEmptyTest) {
+  std::vector<double> input_vector;
+  std::vector<double> output_vector;
+  std::vector<double> result_vector;
+
+  auto task_data = std::make_shared<ppc::core::TaskData>();
+  task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
+  task_data->inputs_count.emplace_back(input_vector.size());
+  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
+  task_data->outputs_count.emplace_back(output_vector.size());
 
   bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential test_task(task_data);
   ASSERT_FALSE(test_task.Validation());

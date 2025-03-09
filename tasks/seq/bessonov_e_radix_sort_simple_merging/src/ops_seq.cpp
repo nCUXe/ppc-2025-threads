@@ -8,7 +8,7 @@
 bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::PreProcessingImpl() {
   unsigned int input_size = task_data->inputs_count[0];
   auto* in_ptr = reinterpret_cast<double*>(task_data->inputs[0]);
-  input_ = std::vector<double>(in_ptr, in_ptr + input_size);
+  input_.assign(in_ptr, in_ptr + input_size);
 
   unsigned int output_size = task_data->outputs_count[0];
   output_.resize(output_size);
@@ -17,7 +17,19 @@ bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::PreProcessing
 }
 
 bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::ValidationImpl() {
-  return task_data->inputs_count[0] == task_data->outputs_count[0];
+  if (!task_data->inputs[0] || !task_data->outputs[0]) {
+    return false;
+  }
+
+  if (task_data->inputs_count[0] == 0) {
+    return false;
+  }
+
+  if (task_data->inputs_count[0] != task_data->outputs_count[0]) {
+    return false;
+  }
+
+  return true;
 }
 
 bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::RunImpl() {
