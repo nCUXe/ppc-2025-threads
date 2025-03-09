@@ -17,7 +17,7 @@ bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::PreProcessing
 }
 
 bool bessonov_e_radix_sort_simple_merging_seq::TestTaskSequential::ValidationImpl() {
-  if (!task_data->inputs[0] || !task_data->outputs[0]) {
+  if (task_data->inputs[0] == nullptr || task_data->outputs[0] == nullptr) {
     return false;
   }
 
