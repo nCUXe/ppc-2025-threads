@@ -9,7 +9,6 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::PreProcessingIm
   unsigned int input_size = task_data->inputs_count[0];
   auto* in_ptr = reinterpret_cast<double*>(task_data->inputs[0]);
 
-  // Предварительно выделяем память для input_
   input_.resize(input_size);
 
 #pragma omp parallel for
@@ -36,9 +35,8 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::ValidationImpl(
     return false;
   }
 
-  // Проверка на превышение размера для int
   if (task_data->inputs_count[0] > static_cast<size_t>(INT_MAX)) {
-    return false;  // Размер массива слишком велик для использования int в OpenMP
+    return false;
   }
 
   return true;
@@ -47,9 +45,8 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::ValidationImpl(
 bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::RunImpl() {
   size_t n_size_t = input_.size();
 
-  // Проверяем, что размер массива не превышает INT_MAX
   if (n_size_t > static_cast<size_t>(INT_MAX)) {
-    return false;  // Массив слишком велик для использования int в OpenMP
+    return false;
   }
 
   int n = static_cast<int>(n_size_t);
@@ -75,7 +72,6 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::RunImpl() {
     int shift = pass * 8;
     std::vector<size_t> count(radix, 0);
 
-// Шаг 1: Подсчет частоты цифр
 #pragma omp parallel
     {
       std::vector<size_t> local_count(radix, 0);
@@ -92,12 +88,10 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::RunImpl() {
       }
     }
 
-    // Шаг 2: Вычисление префиксных сумм
     for (int i = 1; i < radix; i++) {
       count[i] += count[i - 1];
     }
 
-    // Шаг 3: Подготовка смещений для потоков
     int num_threads = omp_get_max_threads();
     std::vector<std::vector<size_t>> thread_counts(num_threads, std::vector<size_t>(radix, 0));
     std::vector<std::vector<uint64_t>> thread_elements(num_threads);
@@ -110,7 +104,6 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::RunImpl() {
       int start = thread_id * chunk_size;
       int end = (thread_id == num_threads - 1) ? n : start + chunk_size;
 
-      // Собираем элементы и их цифры для каждого потока
       thread_elements[thread_id].reserve(end - start);
       thread_digits[thread_id].reserve(end - start);
 
@@ -122,7 +115,6 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::RunImpl() {
       }
     }
 
-    // Шаг 4: Вычисляем глобальные смещения для каждого потока
     std::vector<std::vector<size_t>> thread_offsets(num_threads, std::vector<size_t>(radix, 0));
     std::vector<size_t> global_offsets(radix, 0);
 
@@ -135,7 +127,6 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::RunImpl() {
       global_offsets[digit] = offset;
     }
 
-// Шаг 5: Распределяем элементы в temp параллельно
 #pragma omp parallel
     {
       int thread_id = omp_get_thread_num();
@@ -166,7 +157,7 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::RunImpl() {
 }
 
 bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::PostProcessingImpl() {
-  int n = static_cast<int>(output_.size());  // Уже проверено в ValidationImpl
+  int n = static_cast<int>(output_.size());
 
 #pragma omp parallel for
   for (int i = 0; i < n; i++) {
