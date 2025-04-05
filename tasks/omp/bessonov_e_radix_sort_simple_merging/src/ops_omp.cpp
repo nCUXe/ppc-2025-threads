@@ -3,9 +3,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <climits>
 #include <vector>
 
-bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::PreProcessingImpl() {
+namespace bessonov_e_radix_sort_simple_merging_omp {
+
+bool TestTaskParallel::PreProcessingImpl() {
   unsigned int input_size = task_data->inputs_count[0];
   auto* in_ptr = reinterpret_cast<double*>(task_data->inputs[0]);
 
@@ -22,7 +25,7 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::PreProcessingIm
   return true;
 }
 
-bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::ValidationImpl() {
+bool TestTaskParallel::ValidationImpl() {
   if (task_data->inputs[0] == nullptr || task_data->outputs[0] == nullptr) {
     return false;
   }
@@ -42,20 +45,12 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::ValidationImpl(
   return true;
 }
 
-bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::RunImpl() {
-  size_t n_size_t = input_.size();
-
-  if (n_size_t > static_cast<size_t>(INT_MAX)) {
-    return false;
-  }
-
-  int n = static_cast<int>(n_size_t);
-  std::vector<uint64_t> bits(n);
-
+void ConvertDoubleToBits(std::vector<double>& input, std::vector<uint64_t>& bits) {
+  int n = static_cast<int>(input.size());
 #pragma omp parallel for
   for (int i = 0; i < n; i++) {
     uint64_t b = 0;
-    std::memcpy(&b, &input_[i], sizeof(double));
+    std::memcpy(&b, &input[i], sizeof(double));
     if ((b & (1ULL << 63)) != 0ULL) {
       b = ~b;
     } else {
@@ -63,6 +58,87 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::RunImpl() {
     }
     bits[i] = b;
   }
+}
+
+void CountDigits(const std::vector<uint64_t>& bits, int shift, std::vector<size_t>& count) {
+  const int radix = 256;
+#pragma omp parallel
+  {
+    std::vector<size_t> local_count(radix, 0);
+#pragma omp for
+    for (int i = 0; i < static_cast<int>(bits.size()); i++) {
+      int digit = static_cast<int>((bits[i] >> shift) & 0xFF);
+      local_count[digit]++;
+    }
+#pragma omp critical
+    for (int i = 0; i < radix; i++) {
+      count[i] += local_count[i];
+    }
+  }
+}
+
+void ComputeOffsets(const std::vector<std::vector<size_t>>& thread_counts,
+                    std::vector<std::vector<size_t>>& thread_offsets, std::vector<size_t>& count, int num_threads,
+                    int radix) {
+  for (int i = 1; i < radix; i++) {
+    count[i] += count[i - 1];
+  }
+
+  for (int digit = 0; digit < radix; digit++) {
+    size_t offset = (digit == 0) ? 0 : count[digit - 1];
+    for (int t = 0; t < num_threads; t++) {
+      thread_offsets[t][digit] = offset;
+      offset += thread_counts[t][digit];
+    }
+  }
+}
+
+void DistributeElements(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp,
+                        std::vector<std::vector<size_t>>& thread_offsets,
+                        const std::vector<std::vector<uint64_t>>& thread_elements,
+                        const std::vector<std::vector<int>>& thread_digits) {
+#pragma omp parallel
+  {
+    int thread_id = omp_get_thread_num();
+    std::vector<size_t> local_offsets = thread_offsets[thread_id];
+
+    for (size_t i = 0; i < thread_elements[thread_id].size(); i++) {
+      int digit = thread_digits[thread_id][i];
+      size_t pos = local_offsets[digit];
+      local_offsets[digit]++;
+      temp[pos] = thread_elements[thread_id][i];
+    }
+
+    thread_offsets[thread_id] = local_offsets;
+  }
+  bits.swap(temp);
+}
+
+void ConvertBitsToDouble(std::vector<uint64_t>& bits, std::vector<double>& output) {
+  int n = static_cast<int>(bits.size());
+#pragma omp parallel for
+  for (int i = 0; i < n; i++) {
+    uint64_t b = bits[i];
+    if ((b & (1ULL << 63)) != 0ULL) {
+      b ^= (1ULL << 63);
+    } else {
+      b = ~b;
+    }
+    double d = 0.0;
+    std::memcpy(&d, &b, sizeof(double));
+    output[i] = d;
+  }
+}
+
+bool TestTaskParallel::RunImpl() {
+  size_t n_size_t = input_.size();
+  if (n_size_t > static_cast<size_t>(INT_MAX)) {
+    return false;
+  }
+
+  int n = static_cast<int>(n_size_t);
+  std::vector<uint64_t> bits(n);
+  ConvertDoubleToBits(input_, bits);
 
   const int radix = 256;
   const int passes = 8;
@@ -71,26 +147,7 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::RunImpl() {
   for (int pass = 0; pass < passes; pass++) {
     int shift = pass * 8;
     std::vector<size_t> count(radix, 0);
-
-#pragma omp parallel
-    {
-      std::vector<size_t> local_count(radix, 0);
-
-#pragma omp for
-      for (int i = 0; i < n; i++) {
-        int digit = static_cast<int>((bits[i] >> shift) & 0xFF);
-        local_count[digit]++;
-      }
-
-#pragma omp critical
-      for (int i = 0; i < radix; i++) {
-        count[i] += local_count[i];
-      }
-    }
-
-    for (int i = 1; i < radix; i++) {
-      count[i] += count[i - 1];
-    }
+    CountDigits(bits, shift, count);
 
     int num_threads = omp_get_max_threads();
     std::vector<std::vector<size_t>> thread_counts(num_threads, std::vector<size_t>(radix, 0));
@@ -116,52 +173,21 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::RunImpl() {
     }
 
     std::vector<std::vector<size_t>> thread_offsets(num_threads, std::vector<size_t>(radix, 0));
-    std::vector<size_t> global_offsets(radix, 0);
-
-    for (int digit = 0; digit < radix; digit++) {
-      size_t offset = (digit == 0) ? 0 : count[digit - 1];
-      for (int t = 0; t < num_threads; t++) {
-        thread_offsets[t][digit] = offset;
-        offset += thread_counts[t][digit];
-      }
-      global_offsets[digit] = offset;
-    }
-
-#pragma omp parallel
-    {
-      int thread_id = omp_get_thread_num();
-      for (size_t i = 0; i < thread_elements[thread_id].size(); i++) {
-        int digit = thread_digits[thread_id][i];
-        size_t pos = thread_offsets[thread_id][digit]++;
-        temp[pos] = thread_elements[thread_id][i];
-      }
-    }
-
-    bits.swap(temp);
+    ComputeOffsets(thread_counts, thread_offsets, count, num_threads, radix);
+    DistributeElements(bits, temp, thread_offsets, thread_elements, thread_digits);
   }
 
-#pragma omp parallel for
-  for (int i = 0; i < n; i++) {
-    uint64_t b = bits[i];
-    if ((b & (1ULL << 63)) != 0ULL) {
-      b ^= (1ULL << 63);
-    } else {
-      b = ~b;
-    }
-    double d = 0.0;
-    std::memcpy(&d, &b, sizeof(double));
-    output_[i] = d;
-  }
-
+  ConvertBitsToDouble(bits, output_);
   return true;
 }
 
-bool bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel::PostProcessingImpl() {
+bool TestTaskParallel::PostProcessingImpl() {
   int n = static_cast<int>(output_.size());
-
 #pragma omp parallel for
   for (int i = 0; i < n; i++) {
     reinterpret_cast<double*>(task_data->outputs[0])[i] = output_[i];
   }
   return true;
 }
+
+}  // namespace bessonov_e_radix_sort_simple_merging_omp
