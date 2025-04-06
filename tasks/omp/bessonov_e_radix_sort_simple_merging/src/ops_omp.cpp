@@ -1,9 +1,9 @@
 #include "omp/bessonov_e_radix_sort_simple_merging/include/ops_omp.hpp"
 
+#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <climits>
 #include <vector>
 
 namespace bessonov_e_radix_sort_simple_merging_omp {
@@ -45,7 +45,7 @@ bool TestTaskParallel::ValidationImpl() {
   return true;
 }
 
-void ConvertDoubleToBits(std::vector<double>& input, std::vector<uint64_t>& bits) {
+static void ConvertDoubleToBits(std::vector<double>& input, std::vector<uint64_t>& bits) {
   int n = static_cast<int>(input.size());
 #pragma omp parallel for
   for (int i = 0; i < n; i++) {
@@ -60,7 +60,7 @@ void ConvertDoubleToBits(std::vector<double>& input, std::vector<uint64_t>& bits
   }
 }
 
-void CountDigits(const std::vector<uint64_t>& bits, int shift, std::vector<size_t>& count) {
+static void CountDigits(const std::vector<uint64_t>& bits, int shift, std::vector<size_t>& count) {
   const int radix = 256;
 #pragma omp parallel
   {
@@ -77,9 +77,9 @@ void CountDigits(const std::vector<uint64_t>& bits, int shift, std::vector<size_
   }
 }
 
-void ComputeOffsets(const std::vector<std::vector<size_t>>& thread_counts,
-                    std::vector<std::vector<size_t>>& thread_offsets, std::vector<size_t>& count, int num_threads,
-                    int radix) {
+static void ComputeOffsets(const std::vector<std::vector<size_t>>& thread_counts,
+                           std::vector<std::vector<size_t>>& thread_offsets, std::vector<size_t>& count,
+                           int num_threads, int radix) {
   for (int i = 1; i < radix; i++) {
     count[i] += count[i - 1];
   }
@@ -93,10 +93,10 @@ void ComputeOffsets(const std::vector<std::vector<size_t>>& thread_counts,
   }
 }
 
-void DistributeElements(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp,
-                        std::vector<std::vector<size_t>>& thread_offsets,
-                        const std::vector<std::vector<uint64_t>>& thread_elements,
-                        const std::vector<std::vector<int>>& thread_digits) {
+static void DistributeElements(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp,
+                               std::vector<std::vector<size_t>>& thread_offsets,
+                               const std::vector<std::vector<uint64_t>>& thread_elements,
+                               const std::vector<std::vector<int>>& thread_digits) {
 #pragma omp parallel
   {
     int thread_id = omp_get_thread_num();
@@ -114,7 +114,7 @@ void DistributeElements(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp
   bits.swap(temp);
 }
 
-void ConvertBitsToDouble(std::vector<uint64_t>& bits, std::vector<double>& output) {
+static void ConvertBitsToDouble(std::vector<uint64_t>& bits, std::vector<double>& output) {
   int n = static_cast<int>(bits.size());
 #pragma omp parallel for
   for (int i = 0; i < n; i++) {
