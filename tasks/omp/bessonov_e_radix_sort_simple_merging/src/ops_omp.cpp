@@ -45,7 +45,7 @@ bool TestTaskParallel::ValidationImpl() {
   return true;
 }
 
-static void ConvertDoubleToBits(std::vector<double>& input, std::vector<uint64_t>& bits) {
+void TestTaskParallel::ConvertDoubleToBits(std::vector<double>& input, std::vector<uint64_t>& bits) {
   int n = static_cast<int>(input.size());
 #pragma omp parallel for
   for (int i = 0; i < n; i++) {
@@ -60,7 +60,7 @@ static void ConvertDoubleToBits(std::vector<double>& input, std::vector<uint64_t
   }
 }
 
-static void CountDigits(const std::vector<uint64_t>& bits, int shift, std::vector<size_t>& count) {
+void TestTaskParallel::CountDigits(const std::vector<uint64_t>& bits, int shift, std::vector<size_t>& count) {
   const int radix = 256;
 #pragma omp parallel
   {
@@ -77,7 +77,7 @@ static void CountDigits(const std::vector<uint64_t>& bits, int shift, std::vecto
   }
 }
 
-static void ComputeOffsets(const std::vector<std::vector<size_t>>& thread_counts,
+void TestTaskParallel::ComputeOffsets(const std::vector<std::vector<size_t>>& thread_counts,
                            std::vector<std::vector<size_t>>& thread_offsets, std::vector<size_t>& count,
                            int num_threads, int radix) {
   for (int i = 1; i < radix; i++) {
@@ -93,7 +93,7 @@ static void ComputeOffsets(const std::vector<std::vector<size_t>>& thread_counts
   }
 }
 
-static void DistributeElements(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp,
+void TestTaskParallel::DistributeElements(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp,
                                std::vector<std::vector<size_t>>& thread_offsets,
                                const std::vector<std::vector<uint64_t>>& thread_elements,
                                const std::vector<std::vector<int>>& thread_digits) {
@@ -114,7 +114,7 @@ static void DistributeElements(std::vector<uint64_t>& bits, std::vector<uint64_t
   bits.swap(temp);
 }
 
-static void ConvertBitsToDouble(std::vector<uint64_t>& bits, std::vector<double>& output) {
+void TestTaskParallel::ConvertBitsToDouble(std::vector<uint64_t>& bits, std::vector<double>& output) {
   int n = static_cast<int>(bits.size());
 #pragma omp parallel for
   for (int i = 0; i < n; i++) {
