@@ -2,6 +2,8 @@
 
 #include <omp.h>
 
+#include <cstddef>
+#include <cstdint>
 #include <utility>
 #include <vector>
 
@@ -23,12 +25,12 @@ class TestTaskParallel : public ppc::core::Task {
   static void ConvertDoubleToBits(std::vector<double>& input, std::vector<uint64_t>& bits);
   static void CountDigits(const std::vector<uint64_t>& bits, int shift, std::vector<size_t>& count);
   static void ComputeOffsets(const std::vector<std::vector<size_t>>& thread_counts,
-                      std::vector<std::vector<size_t>>& thread_offsets, std::vector<size_t>& count, int num_threads,
-                      int radix);
+                             std::vector<std::vector<size_t>>& thread_offsets, std::vector<size_t>& count, int num_threads,
+                             int radix);
   static void DistributeElements(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp,
-                          std::vector<std::vector<size_t>>& thread_offsets,
-                          const std::vector<std::vector<uint64_t>>& thread_elements,
-                          const std::vector<std::vector<int>>& thread_digits);
+                                 std::vector<std::vector<size_t>>& thread_offsets,
+                                 const std::vector<std::vector<uint64_t>>& thread_elements,
+                                 const std::vector<std::vector<int>>& thread_digits);
   static void ConvertBitsToDouble(std::vector<uint64_t>& bits, std::vector<double>& output);
 };
 

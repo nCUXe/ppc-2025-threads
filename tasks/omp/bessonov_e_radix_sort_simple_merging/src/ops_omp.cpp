@@ -78,8 +78,8 @@ void TestTaskParallel::CountDigits(const std::vector<uint64_t>& bits, int shift,
 }
 
 void TestTaskParallel::ComputeOffsets(const std::vector<std::vector<size_t>>& thread_counts,
-                           std::vector<std::vector<size_t>>& thread_offsets, std::vector<size_t>& count,
-                           int num_threads, int radix) {
+                                      std::vector<std::vector<size_t>>& thread_offsets, std::vector<size_t>& count,
+                                      int num_threads, int radix) {
   for (int i = 1; i < radix; i++) {
     count[i] += count[i - 1];
   }
@@ -94,9 +94,9 @@ void TestTaskParallel::ComputeOffsets(const std::vector<std::vector<size_t>>& th
 }
 
 void TestTaskParallel::DistributeElements(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp,
-                               std::vector<std::vector<size_t>>& thread_offsets,
-                               const std::vector<std::vector<uint64_t>>& thread_elements,
-                               const std::vector<std::vector<int>>& thread_digits) {
+                                          std::vector<std::vector<size_t>>& thread_offsets,
+                                          const std::vector<std::vector<uint64_t>>& thread_elements,
+                                          const std::vector<std::vector<int>>& thread_digits) {
 #pragma omp parallel
   {
     int thread_id = omp_get_thread_num();
