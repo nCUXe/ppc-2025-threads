@@ -1,9 +1,10 @@
 #include <gtest/gtest.h>
-#include <vector>
-#include <memory>
-#include <random>
+
 #include <algorithm>
 #include <limits>
+#include <memory>
+#include <random>
+#include <vector>
 
 #include "core/task/include/task.hpp"
 #include "tbb/bessonov_e_radix_sort_simple_merging/include/ops_tbb.hpp"
@@ -14,7 +15,7 @@ std::vector<double> GenerateVector(std::size_t n, double min, double max) {
   std::uniform_real_distribution<double> dist(min, max);
   std::vector<double> data(n);
   for (double& d : data) {
-      d = dist(gen);
+    d = dist(gen);
   }
   return data;
 }
@@ -123,7 +124,8 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, AllSameElementsTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_tbb, ExtremeValuesTest) {
-  std::vector<double> input = {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest(), 0.0, -42.5, 100.0};
+  std::vector<double> input = {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest(), 0.0, -42.5, 
+                               100.0};
   std::vector<double> output(input.size(), 0.0);
   std::vector<double> expected = input;
   std::sort(expected.begin(), expected.end());

@@ -1,7 +1,7 @@
 #include "tbb/bessonov_e_radix_sort_simple_merging/include/ops_tbb.hpp"
 
-#include <cstring>
 #include <algorithm>
+#include <cstring>
 
 #include <tbb/tbb.h>
 
@@ -14,7 +14,7 @@ void TestTaskTbb::ConvertToSortableBits(const std::vector<double>& in, std::vect
     uint64_t bits;
     std::memcpy(&bits, &in[i], sizeof(double));
     out[i] = (bits & (1ULL << 63)) ? ~bits : bits ^ (1ULL << 63);
-    });
+  });
 }
 
 void TestTaskTbb::ConvertToDoubles(const std::vector<uint64_t>& in, std::vector<double>& out) {
@@ -22,7 +22,7 @@ void TestTaskTbb::ConvertToDoubles(const std::vector<uint64_t>& in, std::vector<
     uint64_t bits = in[i];
     bits = (bits & (1ULL << 63)) ? bits ^ (1ULL << 63) : ~bits;
     std::memcpy(&out[i], &bits, sizeof(double));
-    });
+  });
 }
 
 void TestTaskTbb::RadixSort(std::vector<uint64_t>& data) {
@@ -35,13 +35,13 @@ void TestTaskTbb::RadixSort(std::vector<uint64_t>& data) {
     std::vector<size_t> count(256, 0);
 
     for (size_t i = 0; i < n; i++) {
-        count[(data[i] >> shift) & 0xFF]++;
+      count[(data[i] >> shift) & 0xFF]++;
     }
     for (int i = 1; i < 256; i++) {
-        count[i] += count[i - 1];
+      count[i] += count[i - 1];
     }
     for (size_t i = n; i-- > 0;) {
-        temp[--count[(data[i] >> shift) & 0xFF]] = data[i];
+      temp[--count[(data[i] >> shift) & 0xFF]] = data[i];
     }
     data.swap(temp);
   }
@@ -59,7 +59,7 @@ bool TestTaskTbb::PreProcessingImpl() {
 
 bool TestTaskTbb::ValidationImpl() {
   return task_data->inputs[0] != nullptr && task_data->outputs[0] != nullptr &&
-    task_data->inputs_count[0] == task_data->outputs_count[0] && task_data->inputs_count[0] > 0;
+         task_data->inputs_count[0] == task_data->outputs_count[0] && task_data->inputs_count[0] > 0;
 }
 
 bool TestTaskTbb::RunImpl() {
@@ -80,7 +80,7 @@ bool TestTaskTbb::RunImpl() {
     ConvertToSortableBits(local, sortable);
     RadixSort(sortable);
     chunks[chunk_idx] = std::move(sortable);
-    });
+  });
 
   while (chunks.size() > 1) {
     size_t new_size = (chunks.size() + 1) / 2;
@@ -91,16 +91,12 @@ bool TestTaskTbb::RunImpl() {
       size_t right_idx = left_idx + 1;
       if (right_idx < chunks.size()) {
         new_chunks[i].resize(chunks[left_idx].size() + chunks[right_idx].size());
-        std::merge(
-            chunks[left_idx].begin(), chunks[left_idx].end(),
-            chunks[right_idx].begin(), chunks[right_idx].end(),
-            new_chunks[i].begin()
-        );
+        std::merge(chunks[left_idx].begin(), chunks[left_idx].end(),chunks[right_idx].begin(), chunks[right_idx].end(),
+                   new_chunks[i].begin());
+      } else {
+         new_chunks[i] = std::move(chunks[left_idx]);
       }
-      else {
-          new_chunks[i] = std::move(chunks[left_idx]);
-      }
-      });
+    });
 
     chunks = std::move(new_chunks);
   }
