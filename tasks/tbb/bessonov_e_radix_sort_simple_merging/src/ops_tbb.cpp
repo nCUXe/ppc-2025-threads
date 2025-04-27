@@ -1,9 +1,9 @@
 #include "tbb/bessonov_e_radix_sort_simple_merging/include/ops_tbb.hpp"
 
+#include <tbb/tbb.h>
+
 #include <algorithm>
 #include <cstring>
-
-#include <tbb/tbb.h>
 
 namespace bessonov_e_radix_sort_simple_merging_tbb {
 
@@ -91,10 +91,10 @@ bool TestTaskTbb::RunImpl() {
       size_t right_idx = left_idx + 1;
       if (right_idx < chunks.size()) {
         new_chunks[i].resize(chunks[left_idx].size() + chunks[right_idx].size());
-        std::merge(chunks[left_idx].begin(), chunks[left_idx].end(),chunks[right_idx].begin(), chunks[right_idx].end(),
+        std::merge(chunks[left_idx].begin(), chunks[left_idx].end(), chunks[right_idx].begin(), chunks[right_idx].end(),
                    new_chunks[i].begin());
       } else {
-         new_chunks[i] = std::move(chunks[left_idx]);
+        new_chunks[i] = std::move(chunks[left_idx]);
       }
     });
 
