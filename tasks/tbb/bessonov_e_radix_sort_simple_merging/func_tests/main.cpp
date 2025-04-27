@@ -21,7 +21,7 @@ std::vector<double> GenerateVector(std::size_t n, double min, double max) {
 }  // namespace
 
 TEST(bessonov_e_radix_sort_simple_merging_tbb, FirstTest) {
-  std::vector<double> input = { 3.4, 1.2, 0.5, 7.8, 2.3, 4.5, 6.7, 8.9, 1.0, 0.2, 5.6, 4.3, 9.1, 1.5, 3.0 };
+  std::vector<double> input = {3.4, 1.2, 0.5, 7.8, 2.3, 4.5, 6.7, 8.9, 1.0, 0.2, 5.6, 4.3, 9.1, 1.5, 3.0};
   std::vector<double> output(input.size(), 0.0);
   std::vector<double> expected = input;
   std::sort(expected.begin(), expected.end());
@@ -42,7 +42,7 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, FirstTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_tbb, SingleElementTest) {
-  std::vector<double> input = { 42.0 };
+  std::vector<double> input = {42.0};
   std::vector<double> output(1, 0.0);
 
   auto task_data = std::make_shared<ppc::core::TaskData>();
@@ -61,7 +61,7 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, SingleElementTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_tbb, NegativeAndPositiveTest) {
-  std::vector<double> input = { -3.2, 1.1, -7.5, 0.0, 4.4, -2.2, 3.3 };
+  std::vector<double> input = {-3.2, 1.1, -7.5, 0.0, 4.4, -2.2, 3.3};
   std::vector<double> output(input.size(), 0.0);
   std::vector<double> expected = input;
   std::sort(expected.begin(), expected.end());
@@ -103,7 +103,7 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, RandomVectorTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_tbb, AllSameElementsTest) {
-  std::vector<double> input = { 3.14, 3.14, 3.14, 3.14 };
+  std::vector<double> input = {3.14, 3.14, 3.14, 3.14};
   std::vector<double> output(input.size(), 0.0);
   std::vector<double> expected = input;
 
@@ -123,7 +123,7 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, AllSameElementsTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_tbb, ExtremeValuesTest) {
-  std::vector<double> input = { std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest(), 0.0, -42.5, 100.0 };
+  std::vector<double> input = {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest(), 0.0, -42.5, 100.0};
   std::vector<double> output(input.size(), 0.0);
   std::vector<double> expected = input;
   std::sort(expected.begin(), expected.end());
@@ -144,7 +144,7 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, ExtremeValuesTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_tbb, TinyNumbersTest) {
-  std::vector<double> input = { 1e-10, -1e-10, 1e-20, -1e-20 };
+  std::vector<double> input = {1e-10, -1e-10, 1e-20, -1e-20};
   std::vector<double> output(input.size(), 0.0);
   std::vector<double> expected = input;
   std::sort(expected.begin(), expected.end());
@@ -165,7 +165,7 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, TinyNumbersTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_tbb, InvalidInputOutputSizeTest) {
-  std::vector<double> input = { 1.0, 2.0, 3.0 };
+  std::vector<double> input = {1.0, 2.0, 3.0};
   std::vector<double> output(2, 0.0);
 
   auto task_data = std::make_shared<ppc::core::TaskData>();
@@ -193,7 +193,7 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, ValidationEmptyTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_tbb, ReverseOrderTest) {
-  std::vector<double> input = { 9.1, 8.9, 7.8, 6.7, 5.6, 4.5, 4.3, 3.4, 3.0, 2.3, 1.5, 1.2, 1.0, 0.5, 0.2 };
+  std::vector<double> input = {9.1, 8.9, 7.8, 6.7, 5.6, 4.5, 4.3, 3.4, 3.0, 2.3, 1.5, 1.2, 1.0, 0.5, 0.2};
   std::vector<double> output(input.size(), 0.0);
   std::vector<double> expected = input;
   std::sort(expected.begin(), expected.end());
