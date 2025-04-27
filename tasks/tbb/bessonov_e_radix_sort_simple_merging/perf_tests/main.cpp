@@ -14,7 +14,7 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, test_pipeline_run) {
   const int n = 5000000;
   std::vector<double> input_vector(n);
   for (int i = 0; i < n; i++) {
-	  input_vector[i] = static_cast<double>(n - i);
+    input_vector[i] = static_cast<double>(n - i);
   }
   std::vector<double> output_vector(n, 0.0);
 
@@ -33,9 +33,9 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, test_pipeline_run) {
   perf_attr->num_running = 10;
   const auto t0 = std::chrono::high_resolution_clock::now();
   perf_attr->current_timer = [t0]() {
-  	auto current_time_point = std::chrono::high_resolution_clock::now();
-	  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time_point - t0).count();
-	  return static_cast<double>(duration) * 1e-9;
+    auto current_time_point = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time_point - t0).count();
+    return static_cast<double>(duration) * 1e-9;
 	};
 
   auto perf_results = std::make_shared<ppc::core::PerfResults>();
@@ -50,7 +50,7 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, test_task_run) {
   const int n = 5000000;
   std::vector<double> input_vector(n);
   for (int i = 0; i < n; i++) {
-	  input_vector[i] = static_cast<double>(n - i);
+    input_vector[i] = static_cast<double>(n - i);
   }
   std::vector<double> output_vector(n, 0.0);
 
@@ -69,9 +69,9 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, test_task_run) {
   perf_attr->num_running = 10;
   const auto t0 = std::chrono::high_resolution_clock::now();
   perf_attr->current_timer = [t0]() {
- 	  auto current_time_point = std::chrono::high_resolution_clock::now();
-	  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time_point - t0).count();
-	  return static_cast<double>(duration) * 1e-9;
+    auto current_time_point = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time_point - t0).count();
+    return static_cast<double>(duration) * 1e-9;
 	};
 
   auto perf_results = std::make_shared<ppc::core::PerfResults>();

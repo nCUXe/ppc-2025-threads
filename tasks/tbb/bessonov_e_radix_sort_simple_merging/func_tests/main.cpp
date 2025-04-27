@@ -124,7 +124,7 @@ TEST(bessonov_e_radix_sort_simple_merging_tbb, AllSameElementsTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_tbb, ExtremeValuesTest) {
-  std::vector<double> input = {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest(), 0.0, -42.5, 
+  std::vector<double> input = {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest(), 0.0, -42.5,
                                100.0};
   std::vector<double> output(input.size(), 0.0);
   std::vector<double> expected = input;
