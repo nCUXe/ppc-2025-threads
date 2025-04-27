@@ -10,109 +10,109 @@ namespace bessonov_e_radix_sort_simple_merging_tbb {
 TestTaskTbb::TestTaskTbb(ppc::core::TaskDataPtr task_data) : Task(std::move(task_data)) {}
 
 void TestTaskTbb::ConvertToSortableBits(const std::vector<double>& in, std::vector<uint64_t>& out) {
-    tbb::parallel_for(size_t(0), in.size(), [&](size_t i) {
-        uint64_t bits;
-        std::memcpy(&bits, &in[i], sizeof(double));
-        out[i] = (bits & (1ULL << 63)) ? ~bits : bits ^ (1ULL << 63);
-        });
+  tbb::parallel_for(size_t(0), in.size(), [&](size_t i) {
+    uint64_t bits;
+    std::memcpy(&bits, &in[i], sizeof(double));
+    out[i] = (bits & (1ULL << 63)) ? ~bits : bits ^ (1ULL << 63);
+    });
 }
 
 void TestTaskTbb::ConvertToDoubles(const std::vector<uint64_t>& in, std::vector<double>& out) {
-    tbb::parallel_for(size_t(0), in.size(), [&](size_t i) {
-        uint64_t bits = in[i];
-        bits = (bits & (1ULL << 63)) ? bits ^ (1ULL << 63) : ~bits;
-        std::memcpy(&out[i], &bits, sizeof(double));
-        });
+  tbb::parallel_for(size_t(0), in.size(), [&](size_t i) {
+    uint64_t bits = in[i];
+    bits = (bits & (1ULL << 63)) ? bits ^ (1ULL << 63) : ~bits;
+    std::memcpy(&out[i], &bits, sizeof(double));
+    });
 }
 
 void TestTaskTbb::RadixSort(std::vector<uint64_t>& data) {
-    const size_t n = data.size();
-    std::vector<uint64_t> temp(n);
-    const int passes = 8;
+  const size_t n = data.size();
+  std::vector<uint64_t> temp(n);
+  const int passes = 8;
 
-    for (int pass = 0; pass < passes; pass++) {
-        int shift = pass * 8;
-        std::vector<size_t> count(256, 0);
+  for (int pass = 0; pass < passes; pass++) {
+    int shift = pass * 8;
+    std::vector<size_t> count(256, 0);
 
-        for (size_t i = 0; i < n; i++) {
-            count[(data[i] >> shift) & 0xFF]++;
-        }
-        for (int i = 1; i < 256; i++) {
-            count[i] += count[i - 1];
-        }
-        for (size_t i = n; i-- > 0;) {
-            temp[--count[(data[i] >> shift) & 0xFF]] = data[i];
-        }
-        data.swap(temp);
+    for (size_t i = 0; i < n; i++) {
+        count[(data[i] >> shift) & 0xFF]++;
     }
+    for (int i = 1; i < 256; i++) {
+        count[i] += count[i - 1];
+    }
+    for (size_t i = n; i-- > 0;) {
+        temp[--count[(data[i] >> shift) & 0xFF]] = data[i];
+    }
+    data.swap(temp);
+  }
 }
 
 bool TestTaskTbb::PreProcessingImpl() {
-    unsigned int input_size = task_data->inputs_count[0];
-    auto* in_ptr = reinterpret_cast<double*>(task_data->inputs[0]);
-    input_.assign(in_ptr, in_ptr + input_size);
+  unsigned int input_size = task_data->inputs_count[0];
+  auto* in_ptr = reinterpret_cast<double*>(task_data->inputs[0]);
+  input_.assign(in_ptr, in_ptr + input_size);
 
-    unsigned int output_size = task_data->outputs_count[0];
-    output_.resize(output_size);
-    return true;
+  unsigned int output_size = task_data->outputs_count[0];
+  output_.resize(output_size);
+  return true;
 }
 
 bool TestTaskTbb::ValidationImpl() {
-    return task_data->inputs[0] != nullptr && task_data->outputs[0] != nullptr &&
-        task_data->inputs_count[0] == task_data->outputs_count[0] && task_data->inputs_count[0] > 0;
+  return task_data->inputs[0] != nullptr && task_data->outputs[0] != nullptr &&
+    task_data->inputs_count[0] == task_data->outputs_count[0] && task_data->inputs_count[0] > 0;
 }
 
 bool TestTaskTbb::RunImpl() {
-    const size_t n = input_.size();
-    if (n == 0) return true;
+  const size_t n = input_.size();
+  if (n == 0) return true;
 
-    const size_t num_chunks = tbb::this_task_arena::max_concurrency();
-    const size_t chunk_size = (n + num_chunks - 1) / num_chunks;
+  const size_t num_chunks = tbb::this_task_arena::max_concurrency();
+  const size_t chunk_size = (n + num_chunks - 1) / num_chunks;
 
-    std::vector<std::vector<uint64_t>> chunks(num_chunks);
+  std::vector<std::vector<uint64_t>> chunks(num_chunks);
 
-    tbb::parallel_for(size_t(0), num_chunks, [&](size_t chunk_idx) {
-        size_t begin = chunk_idx * chunk_size;
-        size_t end = std::min(begin + chunk_size, n);
-        if (begin >= end) return;
-        std::vector<double> local(input_.begin() + begin, input_.begin() + end);
-        std::vector<uint64_t> sortable(end - begin);
-        ConvertToSortableBits(local, sortable);
-        RadixSort(sortable);
-        chunks[chunk_idx] = std::move(sortable);
-        });
+  tbb::parallel_for(size_t(0), num_chunks, [&](size_t chunk_idx) {
+    size_t begin = chunk_idx * chunk_size;
+    size_t end = std::min(begin + chunk_size, n);
+    if (begin >= end) return;
+    std::vector<double> local(input_.begin() + begin, input_.begin() + end);
+    std::vector<uint64_t> sortable(end - begin);
+    ConvertToSortableBits(local, sortable);
+    RadixSort(sortable);
+    chunks[chunk_idx] = std::move(sortable);
+    });
 
-    while (chunks.size() > 1) {
-        size_t new_size = (chunks.size() + 1) / 2;
-        std::vector<std::vector<uint64_t>> new_chunks(new_size);
+  while (chunks.size() > 1) {
+    size_t new_size = (chunks.size() + 1) / 2;
+    std::vector<std::vector<uint64_t>> new_chunks(new_size);
 
-        tbb::parallel_for(size_t(0), new_size, [&](size_t i) {
-            size_t left_idx = i * 2;
-            size_t right_idx = left_idx + 1;
-            if (right_idx < chunks.size()) {
-                new_chunks[i].resize(chunks[left_idx].size() + chunks[right_idx].size());
-                std::merge(
-                    chunks[left_idx].begin(), chunks[left_idx].end(),
-                    chunks[right_idx].begin(), chunks[right_idx].end(),
-                    new_chunks[i].begin()
-                );
-            }
-            else {
-                new_chunks[i] = std::move(chunks[left_idx]);
-            }
-            });
+    tbb::parallel_for(size_t(0), new_size, [&](size_t i) {
+      size_t left_idx = i * 2;
+      size_t right_idx = left_idx + 1;
+      if (right_idx < chunks.size()) {
+        new_chunks[i].resize(chunks[left_idx].size() + chunks[right_idx].size());
+        std::merge(
+            chunks[left_idx].begin(), chunks[left_idx].end(),
+            chunks[right_idx].begin(), chunks[right_idx].end(),
+            new_chunks[i].begin()
+        );
+      }
+      else {
+          new_chunks[i] = std::move(chunks[left_idx]);
+      }
+      });
 
-        chunks = std::move(new_chunks);
-    }
+    chunks = std::move(new_chunks);
+  }
 
-    ConvertToDoubles(chunks[0], output_);
+  ConvertToDoubles(chunks[0], output_);
 
-    return true;
+  return true;
 }
 
 bool TestTaskTbb::PostProcessingImpl() {
-    std::copy(output_.begin(), output_.end(), reinterpret_cast<double*>(task_data->outputs[0]));
-    return true;
+  std::copy(output_.begin(), output_.end(), reinterpret_cast<double*>(task_data->outputs[0]));
+  return true;
 }
 
 }  // namespace bessonov_e_radix_sort_simple_merging_tbb
