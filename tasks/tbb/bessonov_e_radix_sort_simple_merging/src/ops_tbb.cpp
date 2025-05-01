@@ -4,10 +4,10 @@
 #include <tbb/tbb.h>
 
 #include <algorithm>
-#include <cstddef>  // for ptrdiff_t
-#include <cstdint>  // for uint64_t, uint8_t
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
-#include <utility>  // for std::move
+#include <utility>
 #include <vector>
 
 #include "core/task/include/task.hpp"
@@ -17,24 +17,22 @@ namespace bessonov_e_radix_sort_simple_merging_tbb {
 TestTaskTbb::TestTaskTbb(ppc::core::TaskDataPtr task_data) : Task(std::move(task_data)) {}
 
 void TestTaskTbb::ConvertToSortableBits(const std::vector<double>& in, std::vector<uint64_t>& out) {
-  tbb::parallel_for(tbb::blocked_range<size_t>(0, in.size()),
-    [&](const tbb::blocked_range<size_t>& r) {
-      for (size_t i = r.begin(); i < r.end(); ++i) {
-        uint64_t bits = 0;
-        std::memcpy(&bits, &in[i], sizeof(double));
-        out[i] = (bits & (1ULL << 63)) ? ~bits : bits ^ (1ULL << 63);
-      }
+  tbb::parallel_for(tbb::blocked_range<size_t>(0, in.size()), [&](const tbb::blocked_range<size_t>& r) {
+    for (size_t i = r.begin(); i < r.end(); ++i) {
+      uint64_t bits = 0;
+      std::memcpy(&bits, &in[i], sizeof(double));
+      out[i] = (bits & (1ULL << 63)) ? ~bits : bits ^ (1ULL << 63);
+    }
   });
 }
 
 void TestTaskTbb::ConvertToDoubles(const std::vector<uint64_t>& in, std::vector<double>& out) {
-  tbb::parallel_for(tbb::blocked_range<size_t>(0, in.size()),
-    [&](const tbb::blocked_range<size_t>& r) {
-      for (size_t i = r.begin(); i < r.end(); ++i) {
-        uint64_t bits = in[i];
-        bits = (bits & (1ULL << 63)) ? bits ^ (1ULL << 63) : ~bits;
-        std::memcpy(&out[i], &bits, sizeof(double));
-      }
+  tbb::parallel_for(tbb::blocked_range<size_t>(0, in.size()), [&](const tbb::blocked_range<size_t>& r) {
+    for (size_t i = r.begin(); i < r.end(); ++i) {
+      uint64_t bits = in[i];
+      bits = (bits & (1ULL << 63)) ? bits ^ (1ULL << 63) : ~bits;
+      std::memcpy(&out[i], &bits, sizeof(double));
+    }
   });
 }
 
