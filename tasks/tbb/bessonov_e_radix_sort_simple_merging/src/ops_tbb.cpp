@@ -21,7 +21,7 @@ void TestTaskTbb::ConvertToSortableBits(const std::vector<double>& in, std::vect
     uint64_t bits = 0;
     std::memcpy(&bits, &in[i], sizeof(double));
     out[i] = (bits & (1ULL << 63)) ? ~bits : bits ^ (1ULL << 63);
-    });
+  });
 }
 
 void TestTaskTbb::ConvertToDoubles(const std::vector<uint64_t>& in, std::vector<double>& out) {
@@ -29,7 +29,7 @@ void TestTaskTbb::ConvertToDoubles(const std::vector<uint64_t>& in, std::vector<
     uint64_t bits = in[i];
     bits = (bits & (1ULL << 63)) ? bits ^ (1ULL << 63) : ~bits;
     std::memcpy(&out[i], &bits, sizeof(double));
-    });
+  });
 }
 
 void TestTaskTbb::RadixSort(std::vector<uint64_t>& data) {
@@ -66,7 +66,7 @@ bool TestTaskTbb::PreProcessingImpl() {
 
 bool TestTaskTbb::ValidationImpl() {
   return task_data->inputs[0] != nullptr && task_data->outputs[0] != nullptr &&
-    task_data->inputs_count[0] == task_data->outputs_count[0] && task_data->inputs_count[0] > 0;
+         task_data->inputs_count[0] == task_data->outputs_count[0] && task_data->inputs_count[0] > 0;
 }
 
 bool TestTaskTbb::RunImpl() {
@@ -87,12 +87,12 @@ bool TestTaskTbb::RunImpl() {
       return;
     }
     std::vector<double> local(input_.begin() + static_cast<ptrdiff_t>(begin),
-      input_.begin() + static_cast<ptrdiff_t>(end));
+                              input_.begin() + static_cast<ptrdiff_t>(end));
     std::vector<uint64_t> sortable(end - begin);
     ConvertToSortableBits(local, sortable);
     RadixSort(sortable);
     chunks[chunk_idx] = std::move(sortable);
-    });
+  });
 
   while (chunks.size() > 1) {
     size_t new_size = (chunks.size() + 1) / 2;
@@ -103,14 +103,12 @@ bool TestTaskTbb::RunImpl() {
       size_t right_idx = left_idx + 1;
       if (right_idx < chunks.size()) {
         new_chunks[i].resize(chunks[left_idx].size() + chunks[right_idx].size());
-        std::merge(chunks[left_idx].begin(), chunks[left_idx].end(),
-          chunks[right_idx].begin(), chunks[right_idx].end(),
-          new_chunks[i].begin());
-      }
-      else {
+        std::merge(chunks[left_idx].begin(), chunks[left_idx].end(), chunks[right_idx].begin(), chunks[right_idx].end(),
+                          new_chunks[i].begin());
+      } else {
         new_chunks[i] = std::move(chunks[left_idx]);
       }
-      });
+    });
 
     chunks = std::move(new_chunks);
   }
