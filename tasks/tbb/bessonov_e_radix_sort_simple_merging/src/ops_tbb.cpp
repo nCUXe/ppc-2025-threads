@@ -1,5 +1,7 @@
 #include "tbb/bessonov_e_radix_sort_simple_merging/include/ops_tbb.hpp"
 
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
 #include <tbb/task_arena.h>
 #include <tbb/tbb.h>
 
