@@ -104,7 +104,7 @@ bool TestTaskTbb::RunImpl() {
       if (right_idx < chunks.size()) {
         new_chunks[i].resize(chunks[left_idx].size() + chunks[right_idx].size());
         std::merge(chunks[left_idx].begin(), chunks[left_idx].end(), chunks[right_idx].begin(), chunks[right_idx].end(),
-                          new_chunks[i].begin());
+                   new_chunks[i].begin());
       } else {
         new_chunks[i] = std::move(chunks[left_idx]);
       }
