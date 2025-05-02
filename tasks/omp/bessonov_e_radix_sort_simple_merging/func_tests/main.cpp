@@ -36,7 +36,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, FirstTest) {
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
   task_data->outputs_count.emplace_back(output_vector.size());
 
-  bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel test_task(task_data);
+  bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP test_task(task_data);
   ASSERT_TRUE(test_task.Validation());
   test_task.PreProcessing();
   test_task.Run();
@@ -56,7 +56,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, SingleElementTest) {
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
   task_data->outputs_count.emplace_back(output_vector.size());
 
-  bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel test_task(task_data);
+  bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP test_task(task_data);
   ASSERT_TRUE(test_task.Validation());
   test_task.PreProcessing();
   test_task.Run();
@@ -76,7 +76,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, NegativeAndPositiveTest) {
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
   task_data->outputs_count.emplace_back(output_vector.size());
 
-  bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel test_task(task_data);
+  bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP test_task(task_data);
   ASSERT_TRUE(test_task.Validation());
   test_task.PreProcessing();
   test_task.Run();
@@ -99,7 +99,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, RandomVectorTest) {
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
   task_data->outputs_count.emplace_back(output_vector.size());
 
-  bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel test_task(task_data);
+  bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP test_task(task_data);
   ASSERT_TRUE(test_task.Validation());
   test_task.PreProcessing();
   test_task.Run();
@@ -119,7 +119,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, AllSameElementsTest) {
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
   task_data->outputs_count.emplace_back(output_vector.size());
 
-  bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel test_task(task_data);
+  bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP test_task(task_data);
   ASSERT_TRUE(test_task.Validation());
   test_task.PreProcessing();
   test_task.Run();
@@ -141,7 +141,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, ExtremeValuesTest) {
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
   task_data->outputs_count.emplace_back(output_vector.size());
 
-  bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel test_task(task_data);
+  bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP test_task(task_data);
   ASSERT_TRUE(test_task.Validation());
   test_task.PreProcessing();
   test_task.Run();
@@ -161,7 +161,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, TinyNumbersTest) {
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
   task_data->outputs_count.emplace_back(output_vector.size());
 
-  bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel test_task(task_data);
+  bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP test_task(task_data);
   ASSERT_TRUE(test_task.Validation());
   test_task.PreProcessing();
   test_task.Run();
@@ -179,7 +179,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, InvalidInputOutputSizeTest) {
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output.data()));
   task_data->outputs_count.emplace_back(output.size());
 
-  bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel test_task(task_data);
+  bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP test_task(task_data);
   ASSERT_FALSE(test_task.Validation());
 }
 
@@ -194,7 +194,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, ValidationEmptyTest) {
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
   task_data->outputs_count.emplace_back(output_vector.size());
 
-  bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel test_task(task_data);
+  bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP test_task(task_data);
   ASSERT_FALSE(test_task.Validation());
 }
 
@@ -209,7 +209,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, ReverseOrderTest) {
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
   task_data->outputs_count.emplace_back(output_vector.size());
 
-  bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel test_task(task_data);
+  bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP test_task(task_data);
   ASSERT_TRUE(test_task.Validation());
   test_task.PreProcessing();
   test_task.Run();

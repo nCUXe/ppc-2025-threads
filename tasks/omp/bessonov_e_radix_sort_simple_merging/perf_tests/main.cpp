@@ -27,7 +27,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, test_pipeline_run) {
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
   task_data->outputs_count.emplace_back(output_vector.size());
 
-  auto test_task = std::make_shared<bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel>(task_data);
+  auto test_task = std::make_shared<bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP>(task_data);
 
   auto perf_attr = std::make_shared<ppc::core::PerfAttr>();
   perf_attr->num_running = 10;
@@ -63,7 +63,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, test_task_run) {
   task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
   task_data->outputs_count.emplace_back(output_vector.size());
 
-  auto test_task = std::make_shared<bessonov_e_radix_sort_simple_merging_omp::TestTaskParallel>(task_data);
+  auto test_task = std::make_shared<bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP>(task_data);
 
   auto perf_attr = std::make_shared<ppc::core::PerfAttr>();
   perf_attr->num_running = 10;

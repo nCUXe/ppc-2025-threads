@@ -11,9 +11,9 @@
 
 namespace bessonov_e_radix_sort_simple_merging_omp {
 
-class TestTaskParallel : public ppc::core::Task {
+class TestTaskOMP : public ppc::core::Task {
  public:
-  explicit TestTaskParallel(ppc::core::TaskDataPtr task_data) : Task(std::move(task_data)) {}
+  explicit TestTaskOMP(ppc::core::TaskDataPtr task_data) : Task(std::move(task_data)) {}
 
   bool PreProcessingImpl() override;
   bool ValidationImpl() override;
