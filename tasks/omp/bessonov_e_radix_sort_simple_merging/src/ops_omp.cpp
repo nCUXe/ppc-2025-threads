@@ -168,8 +168,8 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP::RunImpl() {
       }
     }
 
-  bits.swap(temp);
-}
+    bits.swap(temp);
+  }
 
   ConvertBitsToDouble(bits, output_);
   return true;
