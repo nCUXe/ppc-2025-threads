@@ -198,6 +198,20 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, ValidationEmptyTest) {
   ASSERT_FALSE(test_task.Validation());
 }
 
+TEST(bessonov_e_radix_sort_simple_merging_omp, NegativeInputOutputSizeTest) {
+  std::vector<double> input = { 1.0, 2.0, 3.0 };
+  std::vector<double> output(3, 0.0);
+
+  auto task_data = std::make_shared<ppc::core::TaskData>();
+  task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input.data()));
+  task_data->inputs_count.emplace_back(-1);
+  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output.data()));
+  task_data->outputs_count.emplace_back(-3);
+
+  bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP test_task(task_data);
+  ASSERT_FALSE(test_task.Validation());
+}
+
 TEST(bessonov_e_radix_sort_simple_merging_omp, ReverseOrderTest) {
   std::vector<double> input_vector = {9.1, 8.9, 7.8, 6.7, 5.6, 4.5, 4.3, 3.4, 3.0, 2.3, 1.5, 1.2, 1.0, 0.5, 0.2};
   std::vector<double> output_vector(input_vector.size(), 0.0);
