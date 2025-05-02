@@ -199,7 +199,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, ValidationEmptyTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_omp, NegativeInputOutputSizeTest) {
-  std::vector<double> input = { 1.0, 2.0, 3.0 };
+  std::vector<double> input = {1.0, 2.0, 3.0};
   std::vector<double> output(3, 0.0);
 
   auto task_data = std::make_shared<ppc::core::TaskData>();

@@ -155,18 +155,18 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP::RunImpl() {
     ComputeOffsets(thread_counts, thread_offsets, count, num_threads, radix);
 
 #pragma omp parallel
-  {
-    int thread_id = omp_get_thread_num();
-    int chunk_size = n / num_threads;
-    int start = thread_id * chunk_size;
-    int end = (thread_id == num_threads - 1) ? n : start + chunk_size;
+    {
+      int thread_id = omp_get_thread_num();
+      int chunk_size = n / num_threads;
+      int start = thread_id * chunk_size;
+      int end = (thread_id == num_threads - 1) ? n : start + chunk_size;
 
-    for (int i = start; i < end; i++) {
-      int digit = static_cast<int>((bits[i] >> shift) & 0xFF);
-      size_t pos = thread_offsets[thread_id][digit]++;
-      temp[pos] = bits[i];
+      for (int i = start; i < end; i++) {
+        int digit = static_cast<int>((bits[i] >> shift) & 0xFF);
+        size_t pos = thread_offsets[thread_id][digit]++;
+        temp[pos] = bits[i];
+      }
     }
-  }
 
   bits.swap(temp);
 }
