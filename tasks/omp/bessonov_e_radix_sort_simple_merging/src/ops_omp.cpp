@@ -93,7 +93,7 @@ void TestTaskOMP::ConvertBitsToDouble(std::vector<uint64_t>& bits, std::vector<d
   }
 }
 
-} // namespace bessonov_e_radix_sort_simple_merging_omp
+}  // namespace bessonov_e_radix_sort_simple_merging_omp
 
 bool bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP::PreProcessingImpl() {
   unsigned int input_size = task_data->inputs_count[0];
