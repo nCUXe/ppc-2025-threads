@@ -25,9 +25,9 @@ class TestTaskSTL : public ppc::core::Task {
 
   static void ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start,
                                   size_t end);
-  static void ConvertBitsToDouble(const std::vector<uint64_t>&bits, std::vector<double>&output, size_t start,
+  static void ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output, size_t start,
                                   size_t end);
-  static void RadixSortPass(std::vector<uint64_t>&bits, std::vector<uint64_t>&temp, int shift, size_t start,
+  static void RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift, size_t start,
                             size_t end);
 };
 
