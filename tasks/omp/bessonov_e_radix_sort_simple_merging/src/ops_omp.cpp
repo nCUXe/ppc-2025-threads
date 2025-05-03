@@ -92,25 +92,14 @@ bool bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP::PreProcessingImpl() 
 }
 
 bool bessonov_e_radix_sort_simple_merging_omp::TestTaskOMP::ValidationImpl() {
-  if (task_data->inputs[0] == nullptr || task_data->outputs[0] == nullptr) {
-    return false;
-  }
+  if (task_data->inputs.empty() || task_data->outputs.empty()) return false;
+  if (!task_data->inputs[0] || !task_data->outputs[0]) return false;
 
-  if (task_data->inputs_count[0] == 0) {
-    return false;
-  }
+  if (task_data->inputs_count.empty() || task_data->outputs_count.empty()) return false;
+  if (task_data->inputs_count[0] == 0) return false;
+  if (task_data->inputs_count[0] != task_data->outputs_count[0]) return false;
 
-  if (task_data->inputs_count[0] != task_data->outputs_count[0]) {
-    return false;
-  }
-
-  if (task_data->inputs_count[0] > static_cast<size_t>(INT_MAX)) {
-    return false;
-  }
-
-  if (task_data->inputs_count[0] < 0 || task_data->outputs_count[0] < 0) {
-    return false;
-  }
+  if (task_data->inputs_count[0] > static_cast<size_t>(INT_MAX)) return false;
 
   return true;
 }
