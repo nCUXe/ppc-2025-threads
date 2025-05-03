@@ -10,29 +10,27 @@
 
 namespace bessonov_e_radix_sort_simple_merging_stl {
 
-void TestTaskSTL::ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits,
-                                      size_t start, size_t end) {
+void TestTaskSTL::ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start,
+                                      size_t end) {
   for (size_t i = start; i < end; ++i) {
     uint64_t b = 0;
     std::memcpy(&b, &input[i], sizeof(double));
     if ((b & (1ULL << 63)) != 0ULL) {
       b = ~b;
-    }
-    else {
+    } else {
       b ^= (1ULL << 63);
     }
     bits[i] = b;
   }
 }
 
-void TestTaskSTL::ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output,
-                                      size_t start, size_t end) {
+void TestTaskSTL::ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output, size_t start,
+                                      size_t end) {
   for (size_t i = start; i < end; ++i) {
     uint64_t b = bits[i];
     if ((b & (1ULL << 63)) != 0ULL) {
       b ^= (1ULL << 63);
-    }
-    else {
+    } else {
       b = ~b;
     }
     double d = 0.0;
@@ -41,8 +39,8 @@ void TestTaskSTL::ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::ve
   }
 }
 
-void TestTaskSTL::RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp,
-                                int shift, size_t start, size_t end) {
+void TestTaskSTL::RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift, size_t start,
+                                size_t end) {
   constexpr int radix = 256;
   std::array<size_t, radix> count{};
 
@@ -130,7 +128,7 @@ bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::RunImpl() {
           int digit = static_cast<int>((bits[j] >> shift) & 0xFF);
           counts[digit]++;
         }
-        });
+      });
     }
     for (auto& t : threads) t.join();
     threads.clear();
@@ -144,7 +142,7 @@ bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::RunImpl() {
 
     std::partial_sum(global_count.begin(), global_count.end(), global_count.begin());
 
-    for (size_t i = n; i-- > 0; ) {
+    for (size_t i = n; i-- > 0;) {
       int digit = static_cast<int>((bits[i] >> shift) & 0xFF);
       temp[--global_count[digit]] = bits[i];
     }
