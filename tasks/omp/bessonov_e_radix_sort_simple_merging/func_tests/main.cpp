@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -241,7 +242,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, Validation_ZeroSize) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_omp, Validation_SizeOverflow) {
-  size_t huge_size = static_cast<size_t>(INT_MAX) + 1;
+  auto huge_size = static_cast<size_t>(INT_MAX) + 1;
   auto task_data = std::make_shared<ppc::core::TaskData>();
   task_data->inputs.emplace_back(nullptr);
   task_data->inputs_count.emplace_back(huge_size);
@@ -264,7 +265,7 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, Validation_EmptyCounts) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_omp, Validation_MaxSize) {
-  size_t max_size = static_cast<size_t>(INT_MAX);
+  auto max_size = static_cast<size_t>(INT_MAX);
 
   auto* dummy_input = new uint8_t[1];
   auto* dummy_output = new uint8_t[1];
