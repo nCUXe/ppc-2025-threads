@@ -171,9 +171,9 @@ TEST(bessonov_e_radix_sort_simple_merging_omp, TinyNumbersTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_omp, ReverseOrderTest) {
-  std::vector<double> input_vector = { 9.1, 8.9, 7.8, 6.7, 5.6, 4.5, 4.3, 3.4, 3.0, 2.3, 1.5, 1.2, 1.0, 0.5, 0.2 };
+  std::vector<double> input_vector = {9.1, 8.9, 7.8, 6.7, 5.6, 4.5, 4.3, 3.4, 3.0, 2.3, 1.5, 1.2, 1.0, 0.5, 0.2};
   std::vector<double> output_vector(input_vector.size(), 0.0);
-  std::vector<double> result_vector = { 0.2, 0.5, 1.0, 1.2, 1.5, 2.3, 3.0, 3.4, 4.3, 4.5, 5.6, 6.7, 7.8, 8.9, 9.1 };
+  std::vector<double> result_vector = {0.2, 0.5, 1.0, 1.2, 1.5, 2.3, 3.0, 3.4, 4.3, 4.5, 5.6, 6.7, 7.8, 8.9, 9.1};
 
   auto task_data = std::make_shared<ppc::core::TaskData>();
   task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
