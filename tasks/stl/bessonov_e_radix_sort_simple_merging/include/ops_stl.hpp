@@ -1,8 +1,7 @@
 #pragma once
 
 #include <cstddef>
-#include <mutex>
-#include <thread>
+#include <cstdint>
 #include <utility>
 #include <vector>
 
