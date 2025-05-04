@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstring>
 #include <functional>
+#include <limits>
 #include <numeric>
 #include <thread>
 #include <vector>
@@ -40,145 +41,130 @@ void TestTaskSTL::ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::ve
   }
 }
 
-void TestTaskSTL::RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift, size_t start,
-                                size_t end) {
+void TestTaskSTL::RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift) {
   constexpr int kRadix = 256;
-  std::array<size_t, kRadix> count{};
-
-  for (size_t i = start; i < end; ++i) {
-    int digit = static_cast<int>((bits[i] >> shift) & 0xFF);
-    count[digit]++;
-  }
-}
-}  // namespace bessonov_e_radix_sort_simple_merging_stl
-
-bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::PreProcessingImpl() {
-  input_.resize(task_data->inputs_count[0]);
-  output_.resize(task_data->outputs_count[0]);
-
-  auto* in_ptr = reinterpret_cast<double*>(task_data->inputs[0]);
-  std::copy(in_ptr, in_ptr + task_data->inputs_count[0], input_.begin());
-
-  return true;
-}
-
-bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::ValidationImpl() {
-  if (task_data->inputs.empty() || task_data->outputs.empty()) {
-    return false;
-  }
-
-  if (task_data->inputs[0] == nullptr || task_data->outputs[0] == nullptr) {
-    return false;
-  }
-
-  if (task_data->inputs_count.empty() || task_data->outputs_count.empty()) {
-    return false;
-  }
-
-  if (task_data->inputs_count[0] == 0) {
-    return false;
-  }
-
-  if (task_data->inputs_count[0] != task_data->outputs_count[0]) {
-    return false;
-  }
-
-  if (task_data->inputs_count[0] > static_cast<size_t>(std::numeric_limits<int>::max())) {
-    return false;
-  }
-
-  return true;
-}
-
-bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::RunImpl() {
-  const size_t n = input_.size();
-  if (n == 0) {
-    return true;
-  }
-
-  std::vector<uint64_t> bits(n);
-  std::vector<uint64_t> temp(n);
-
+  const size_t n = bits.size();
   const size_t num_threads = std::thread::hardware_concurrency();
   const size_t block_size = (n + num_threads - 1) / num_threads;
 
+  std::vector<std::array<size_t, kRadix>> local_counts(num_threads);
   std::vector<std::thread> threads;
+
   for (size_t i = 0; i < num_threads; ++i) {
     size_t start = i * block_size;
     size_t end = std::min(start + block_size, n);
-    if (start >= n) {
-      break;
-    }
+    if (start >= n) break;
 
-    threads.emplace_back(ConvertDoubleToBits, std::cref(input_), std::ref(bits), start, end);
+    threads.emplace_back([&, start, end, i]() {
+      auto& counts = local_counts[i];
+      for (size_t j = start; j < end; ++j) {
+        int digit = static_cast<int>((bits[j] >> shift) & 0xFF);
+        counts[digit]++;
+      }
+    });
   }
-  for (auto& t : threads) {
-    t.join();
-  }
+  for (auto& t : threads) t.join();
   threads.clear();
 
-  constexpr int kPasses = sizeof(uint64_t);
-  constexpr int kRadix = 256;
-
-  for (int pass = 0; pass < kPasses; ++pass) {
-    const int shift = pass * 8;
-
-    std::vector<std::array<size_t, kRadix>> local_counts(num_threads);
-    for (size_t i = 0; i < num_threads; ++i) {
-      size_t start = i * block_size;
-      size_t end = std::min(start + block_size, n);
-      if (start >= n) {
-        break;
-      }
-
-      threads.emplace_back([&, start, end, i]() {
-        auto& counts = local_counts[i];
-        for (size_t j = start; j < end; ++j) {
-          int digit = static_cast<int>((bits[j] >> shift) & 0xFF);
-          counts[digit]++;
-        }
-      });
+  std::array<size_t, kRadix> global_count{};
+  for (auto& lc : local_counts) {
+    for (int i = 0; i < kRadix; ++i) {
+      global_count[i] += lc[i];
     }
-    for (auto& t : threads) {
-      t.join();
-    }
-    threads.clear();
-
-    std::array<size_t, kRadix> global_count{};
-    for (auto& lc : local_counts) {
-      for (int i = 0; i < kRadix; ++i) {
-        global_count[i] += lc[i];
-      }
-    }
-
-    std::partial_sum(global_count.begin(), global_count.end(), global_count.begin());
-
-    for (size_t i = n; i-- > 0;) {
-      int digit = static_cast<int>((bits[i] >> shift) & 0xFF);
-      temp[--global_count[digit]] = bits[i];
-    }
-
-    bits.swap(temp);
   }
 
-  for (size_t i = 0; i < num_threads; ++i) {
-    size_t start = i * block_size;
-    size_t end = std::min(start + block_size, n);
-    if (start >= n) {
-      break;
-    }
+  std::partial_sum(global_count.begin(), global_count.end(), global_count.begin());
 
-    threads.emplace_back(ConvertBitsToDouble, std::cref(bits), std::ref(output_), start, end);
-  }
-  for (auto& t : threads) {
-    t.join();
+  for (size_t i = n; i-- > 0;) {
+    int digit = static_cast<int>((bits[i] >> shift) & 0xFF);
+    temp[--global_count[digit]] = bits[i];
   }
 
-  return true;
+  bits.swap(temp);
 }
+}  // namespace bessonov_e_radix_sort_simple_merging_stl
 
-bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::PostProcessingImpl() {
-  auto* out_ptr = reinterpret_cast<double*>(task_data->outputs[0]);
-  std::ranges::copy(output_.begin(), output_.end(), out_ptr);
-  return true;
-}
+  bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::PreProcessingImpl() {
+    input_.resize(task_data->inputs_count[0]);
+    output_.resize(task_data->outputs_count[0]);
+
+    auto* in_ptr = reinterpret_cast<double*>(task_data->inputs[0]);
+    std::copy(in_ptr, in_ptr + task_data->inputs_count[0], input_.begin());
+
+    return true;
+  }
+
+  bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::ValidationImpl() {
+    if (task_data->inputs.empty() || task_data->outputs.empty()) {
+      return false;
+    }
+
+    if (task_data->inputs[0] == nullptr || task_data->outputs[0] == nullptr) {
+      return false;
+    }
+
+    if (task_data->inputs_count.empty() || task_data->outputs_count.empty()) {
+      return false;
+    }
+
+    if (task_data->inputs_count[0] == 0) {
+      return false;
+    }
+
+    if (task_data->inputs_count[0] != task_data->outputs_count[0]) {
+      return false;
+    }
+
+    if (task_data->inputs_count[0] > static_cast<size_t>(std::numeric_limits<int>::max())) {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::RunImpl() {
+    const size_t n = input_.size();
+    if (n == 0) {
+      return true;
+    }
+
+    std::vector<uint64_t> bits(n);
+    std::vector<uint64_t> temp(n);
+
+    const size_t num_threads = std::thread::hardware_concurrency();
+    const size_t block_size = (n + num_threads - 1) / num_threads;
+    {
+      std::vector<std::thread> threads;
+      for (size_t i = 0; i < num_threads; ++i) {
+        size_t start = i * block_size;
+        size_t end = std::min(start + block_size, n);
+        if (start >= n) break;
+        threads.emplace_back(ConvertDoubleToBits, std::cref(input_), std::ref(bits), start, end);
+      }
+      for (auto& t : threads) t.join();
+    }
+
+    constexpr int kPasses = sizeof(uint64_t);
+    for (int pass = 0; pass < kPasses; ++pass) {
+      RadixSortPass(bits, temp, pass * 8);
+    }
+
+    {
+      std::vector<std::thread> threads;
+      for (size_t i = 0; i < num_threads; ++i) {
+        size_t start = i * block_size;
+        size_t end = std::min(start + block_size, n);
+        if (start >= n) break;
+        threads.emplace_back(ConvertBitsToDouble, std::cref(bits), std::ref(output_), start, end);
+      }
+      for (auto& t : threads) t.join();
+    }
+
+    return true;
+  }
+
+  bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::PostProcessingImpl() {
+    auto* out_ptr = reinterpret_cast<double*>(task_data->outputs[0]);
+    std::ranges::copy(output_.begin(), output_.end(), out_ptr);
+    return true;
+  }

@@ -26,8 +26,7 @@ class TestTaskSTL : public ppc::core::Task {
                                   size_t end);
   static void ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output, size_t start,
                                   size_t end);
-  static void RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift, size_t start,
-                            size_t end);
+  static void RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift);
 };
 
 }  // namespace bessonov_e_radix_sort_simple_merging_stl
