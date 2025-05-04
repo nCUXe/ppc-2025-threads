@@ -53,7 +53,9 @@ void TestTaskSTL::RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_
   for (size_t i = 0; i < num_threads; ++i) {
     size_t start = i * block_size;
     size_t end = std::min(start + block_size, n);
-    if (start >= n) break;
+    if (start >= n) {
+      break;
+    }
 
     threads.emplace_back([&, start, end, i]() {
       auto& counts = local_counts[i];
@@ -141,7 +143,9 @@ bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::RunImpl() {
       if (start >= n) break;
       threads.emplace_back(ConvertDoubleToBits, std::cref(input_), std::ref(bits), start, end);
     }
-    for (auto& t : threads) t.join();
+    for (auto& t : threads) {
+      t.join();
+    }
   }
 
   constexpr int kPasses = sizeof(uint64_t);
@@ -154,10 +158,14 @@ bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::RunImpl() {
     for (size_t i = 0; i < num_threads; ++i) {
       size_t start = i * block_size;
       size_t end = std::min(start + block_size, n);
-      if (start >= n) break;
+      if (start >= n) {
+        break;
+      }
       threads.emplace_back(ConvertBitsToDouble, std::cref(bits), std::ref(output_), start, end);
     }
-    for (auto& t : threads) t.join();
+    for (auto& t : threads) {
+      t.join();
+    }
   }
 
   return true;
