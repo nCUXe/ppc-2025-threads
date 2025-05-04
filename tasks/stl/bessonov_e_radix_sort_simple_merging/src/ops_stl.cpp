@@ -65,7 +65,9 @@ void TestTaskSTL::RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_
       }
     });
   }
-  for (auto& t : threads) t.join();
+  for (auto& t : threads) {
+    t.join();
+  }
   threads.clear();
 
   std::array<size_t, kRadix> global_count{};
@@ -140,7 +142,9 @@ bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::RunImpl() {
     for (size_t i = 0; i < num_threads; ++i) {
       size_t start = i * block_size;
       size_t end = std::min(start + block_size, n);
-      if (start >= n) break;
+      if (start >= n) {
+        break;
+      }
       threads.emplace_back(ConvertDoubleToBits, std::cref(input_), std::ref(bits), start, end);
     }
     for (auto& t : threads) {
