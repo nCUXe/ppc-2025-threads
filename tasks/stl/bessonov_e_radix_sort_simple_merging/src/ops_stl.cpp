@@ -15,7 +15,7 @@ namespace bessonov_e_radix_sort_simple_merging_stl {
 void TestTaskSTL::ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start,
                                       size_t end) {
   for (size_t i = start; i < end; ++i) {
-    uint64_t b;
+    uint64_t b = 0;
     std::memcpy(&b, &input[i], sizeof(double));
     b ^= (-static_cast<int64_t>(b >> 63) | (1ULL << 63));
     bits[i] = b;
@@ -27,7 +27,7 @@ void TestTaskSTL::ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::ve
   for (size_t i = start; i < end; ++i) {
     uint64_t b = bits[i];
     b ^= (((b >> 63) - 1) | (1ULL << 63));
-    double d;
+    double d = NAN;
     std::memcpy(&d, &b, sizeof(double));
     output[i] = d;
   }
