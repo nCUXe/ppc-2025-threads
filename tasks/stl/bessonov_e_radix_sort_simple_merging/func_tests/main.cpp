@@ -171,6 +171,26 @@ TEST(bessonov_e_radix_sort_simple_merging_stl, TinyNumbersTest) {
   ASSERT_EQ(output_vector, result_vector);
 }
 
+TEST(bessonov_e_radix_sort_simple_merging_stl, DenormalNumbersTest) {
+  std::vector<double> input_vector = {1e-310, -1e-310, 0.0};
+  std::vector<double> output_vector(input_vector.size(), 0.0);
+  std::vector<double> result_vector = {-1e-310, 0.0, 1e-310};
+
+  auto task_data = std::make_shared<ppc::core::TaskData>();
+  task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input_vector.data()));
+  task_data->inputs_count.emplace_back(input_vector.size());
+  task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output_vector.data()));
+  task_data->outputs_count.emplace_back(output_vector.size());
+
+  bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL test_task(task_data);
+  ASSERT_TRUE(test_task.Validation());
+  test_task.PreProcessing();
+  test_task.Run();
+  test_task.PostProcessing();
+
+  ASSERT_EQ(output_vector, result_vector);
+}
+
 TEST(bessonov_e_radix_sort_simple_merging_stl, ReverseOrderTest) {
   std::vector<double> input_vector = {9.1, 8.9, 7.8, 6.7, 5.6, 4.5, 4.3, 3.4, 3.0, 2.3, 1.5, 1.2, 1.0, 0.5, 0.2};
   std::vector<double> output_vector(input_vector.size(), 0.0);
