@@ -7,7 +7,6 @@
 #include <cstring>
 #include <functional>
 #include <limits>
-#include <numeric>
 #include <thread>
 #include <vector>
 
