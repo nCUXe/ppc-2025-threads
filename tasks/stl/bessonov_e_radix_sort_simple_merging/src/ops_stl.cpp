@@ -11,6 +11,8 @@
 #include <thread>
 #include <vector>
 
+#include "core/util/include/util.hpp"
+
 namespace bessonov_e_radix_sort_simple_merging_stl {
 
 void TestTaskSTL::ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start,
@@ -37,7 +39,8 @@ void TestTaskSTL::ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::ve
 void TestTaskSTL::RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift) {
   constexpr int kRadix = 256;
   const size_t n = bits.size();
-  const size_t num_threads = std::thread::hardware_concurrency();
+  size_t num_threads = ppc::util::GetPPCNumThreads();
+  num_threads = std::max<size_t>(1, num_threads);
   const size_t block_size = (n + num_threads - 1) / num_threads;
 
   std::vector<std::array<size_t, kRadix>> local_counts(num_threads);
@@ -128,7 +131,8 @@ bool bessonov_e_radix_sort_simple_merging_stl::TestTaskSTL::RunImpl() {
   std::vector<uint64_t> bits(n);
   std::vector<uint64_t> temp(n);
 
-  const size_t num_threads = std::thread::hardware_concurrency();
+  size_t num_threads = ppc::util::GetPPCNumThreads();
+  num_threads = std::max<size_t>(1, num_threads);
   const size_t block_size = (n + num_threads - 1) / num_threads;
   {
     std::vector<std::thread> threads;
