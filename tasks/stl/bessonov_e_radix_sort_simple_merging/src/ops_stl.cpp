@@ -39,45 +39,22 @@ void TestTaskSTL::ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::ve
 void TestTaskSTL::RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift) {
   constexpr int kRadix = 256;
   const size_t n = bits.size();
-  size_t num_threads = ppc::util::GetPPCNumThreads();
-  num_threads = std::max<size_t>(1, num_threads);
-  const size_t block_size = (n + num_threads - 1) / num_threads;
+  std::array<size_t, kRadix> count{};
 
-  std::vector<std::array<size_t, kRadix>> local_counts(num_threads);
-  std::vector<std::thread> threads;
-
-  for (size_t i = 0; i < num_threads; ++i) {
-    size_t start = i * block_size;
-    size_t end = std::min(start + block_size, n);
-    if (start >= n) {
-      break;
-    }
-
-    threads.emplace_back([&, start, end, i]() {
-      auto& counts = local_counts[i];
-      for (size_t j = start; j < end; ++j) {
-        int digit = static_cast<int>((bits[j] >> shift) & 0xFF);
-        counts[digit]++;
-      }
-    });
-  }
-  for (auto& t : threads) {
-    t.join();
-  }
-  threads.clear();
-
-  std::array<size_t, kRadix> global_count{};
-  for (auto& lc : local_counts) {
-    for (int i = 0; i < kRadix; ++i) {
-      global_count[i] += lc[i];
-    }
+  for (size_t i = 0; i < n; ++i) {
+    count[(bits[i] >> shift) & 0xFF]++;
   }
 
-  std::partial_sum(global_count.begin(), global_count.end(), global_count.begin());
+  size_t total = 0;
+  for (int i = 0; i < kRadix; ++i) {
+    size_t old_count = count[i];
+    count[i] = total;
+    total += old_count;
+  }
 
-  for (size_t i = n; i-- > 0;) {
-    int digit = static_cast<int>((bits[i] >> shift) & 0xFF);
-    temp[--global_count[digit]] = bits[i];
+  for (size_t i = 0; i < n; ++i) {
+    uint8_t digit = (bits[i] >> shift) & 0xFF;
+    temp[count[digit]++] = bits[i];
   }
 
   bits.swap(temp);
