@@ -1,7 +1,5 @@
 #include "all/bessonov_e_radix_sort_simple_merging/include/ops_all.hpp"
 
-#include <mpi.h>
-
 #include <algorithm>
 #include <array>
 #include <boost/mpi/collectives.hpp>
@@ -9,8 +7,9 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
-#include <functional>
+#include <deque>
 #include <limits>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -18,214 +17,243 @@
 
 namespace bessonov_e_radix_sort_simple_merging_all {
 
-void TestTaskALL::ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start,
-                                      size_t end) {
-  for (size_t i = start; i < end; ++i) {
-    uint64_t b = 0;
-    std::memcpy(&b, &input[i], sizeof(double));
-    b ^= (-static_cast<int64_t>(b >> 63) | (1ULL << 63));
-    bits[i] = b;
-  }
-}
-
-void TestTaskALL::ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output, size_t start,
-                                      size_t end) {
-  for (size_t i = start; i < end; ++i) {
-    uint64_t b = bits[i];
-    b ^= (((b >> 63) - 1) | (1ULL << 63));
-    double d = NAN;
-    std::memcpy(&d, &b, sizeof(double));
-    output[i] = d;
-  }
-}
-
-void TestTaskALL::RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift) {
-  constexpr int kRadix = 256;
-  const size_t n = bits.size();
-  std::array<size_t, kRadix> count{};
-
-  for (size_t i = 0; i < n; ++i) {
-    count[(bits[i] >> shift) & 0xFF]++;
-  }
-
-  size_t total = 0;
-  for (int i = 0; i < kRadix; ++i) {
-    size_t old_count = count[i];
-    count[i] = total;
-    total += old_count;
-  }
-
-  for (size_t i = 0; i < n; ++i) {
-    uint8_t digit = (bits[i] >> shift) & 0xFF;
-    temp[count[digit]++] = bits[i];
-  }
-
-  bits.swap(temp);
-}
-
-bool TestTaskALL::PreProcessingImpl() {
-  int rank, size;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-  if (rank == 0) {
-    input_.resize(task_data->inputs_count[0]);
-    auto* in_ptr = reinterpret_cast<double*>(task_data->inputs[0]);
-    std::copy(in_ptr, in_ptr + task_data->inputs_count[0], input_.begin());
-  }
-
-  size_t total_size = input_.size();
-  MPI_Bcast(&total_size, 1, MPI_UNSIGNED_LONG, 0, MPI_COMM_WORLD);
-
-  size_t local_size = total_size / size;
-  if (rank < static_cast<int>(total_size % size)) {
-    local_size++;
-  }
-
-  std::vector<double> local_data(local_size);
-  std::vector<int> counts(size);
-  std::vector<int> displs(size);
-
-  if (rank == 0) {
-    for (int i = 0; i < size; ++i) {
-      counts[i] = total_size / size + (i < static_cast<int>(total_size % size) ? 1 : 0);
-      displs[i] = i == 0 ? 0 : displs[i - 1] + counts[i - 1];
+  void TestTaskALL::ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start, size_t end) {
+    for (size_t i = start; i < end; ++i) {
+      uint64_t b = 0;
+      std::memcpy(&b, &input[i], sizeof(double));
+      b ^= (-static_cast<int64_t>(b >> 63) | (1ULL << 63));
+      bits[i] = b;
     }
   }
 
-  MPI_Scatterv(input_.data(), counts.data(), displs.data(), MPI_DOUBLE, local_data.data(), local_size, MPI_DOUBLE, 0,
-               MPI_COMM_WORLD);
-
-  input_ = std::move(local_data);
-  output_.resize(input_.size());
-
-  return true;
-}
-
-bool TestTaskALL::ValidationImpl() {
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-  if (rank == 0) {
-    if (task_data->inputs.empty() || task_data->outputs.empty()) {
-      return false;
-    }
-
-    if (task_data->inputs[0] == nullptr || task_data->outputs[0] == nullptr) {
-      return false;
-    }
-
-    if (task_data->inputs_count.empty() || task_data->outputs_count.empty()) {
-      return false;
-    }
-
-    if (task_data->inputs_count[0] == 0) {
-      return false;
-    }
-
-    if (task_data->inputs_count[0] != task_data->outputs_count[0]) {
-      return false;
-    }
-
-    if (task_data->inputs_count[0] > static_cast<size_t>(std::numeric_limits<int>::max())) {
-      return false;
+  void TestTaskALL::ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output, size_t start, size_t end) {
+    for (size_t i = start; i < end; ++i) {
+      uint64_t b = bits[i];
+      b ^= (((b >> 63) - 1) | (1ULL << 63));
+      double d = NAN;
+      std::memcpy(&d, &b, sizeof(double));
+      output[i] = d;
     }
   }
 
-  int valid = 1;
-  MPI_Bcast(&valid, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  return valid != 0;
-}
+  void TestTaskALL::RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift) {
+    constexpr int kRadix = 256;
+    const size_t n = bits.size();
+    std::array<size_t, kRadix> count{};
 
-bool TestTaskALL::RunImpl() {
-  const size_t n = input_.size();
-  if (n == 0) {
+    for (size_t i = 0; i < n; ++i) {
+      count[(bits[i] >> shift) & 0xFF]++;
+    }
+
+    size_t total = 0;
+    for (int i = 0; i < kRadix; ++i) {
+      size_t old_count = count[i];
+      count[i] = total;
+      total += old_count;
+    }
+
+    for (size_t i = 0; i < n; ++i) {
+      uint8_t digit = (bits[i] >> shift) & 0xFF;
+      temp[count[digit]++] = bits[i];
+    }
+
+    bits.swap(temp);
+  }
+
+  std::vector<double> TestTaskALL::Merge(const std::vector<double>& left, const std::vector<double>& right) {
+    std::vector<double> result;
+    result.reserve(left.size() + right.size());
+
+    size_t i = 0, j = 0;
+    while (i < left.size() && j < right.size()) {
+      if (left[i] < right[j]) {
+        result.push_back(left[i++]);
+      }
+      else {
+        result.push_back(right[j++]);
+      }
+    }
+
+    while (i < left.size()) result.push_back(left[i++]);
+    while (j < right.size()) result.push_back(right[j++]);
+
+    return result;
+  }
+
+  bool TestTaskALL::PreProcessingImpl() {
+    if (world_.rank() == 0) {
+      input_.resize(task_data->inputs_count[0]);
+      output_.resize(task_data->outputs_count[0]);
+
+      auto* in_ptr = reinterpret_cast<double*>(task_data->inputs[0]);
+      std::copy(in_ptr, in_ptr + task_data->inputs_count[0], input_.begin());
+    }
     return true;
   }
 
-  std::vector<uint64_t> bits(n);
-  std::vector<uint64_t> temp(n);
+  bool TestTaskALL::ValidationImpl() {
+    bool local_valid = true;
 
-  size_t num_threads = ppc::util::GetPPCNumThreads();
-  num_threads = std::max<size_t>(1, num_threads);
-  const size_t block_size = (n + num_threads - 1) / num_threads;
+    if (world_.rank() == 0) {
+      local_valid = !(task_data->inputs.empty() || task_data->outputs.empty());
+      local_valid &= task_data->inputs[0] != nullptr && task_data->outputs[0] != nullptr;
 
-  {
-    std::vector<std::thread> threads;
-    for (size_t i = 0; i < num_threads; ++i) {
-      size_t start = i * block_size;
-      size_t end = std::min(start + block_size, n);
-      if (start >= n) {
-        break;
+      if (task_data->inputs_count.empty() || task_data->outputs_count.empty()) {
+        local_valid = false;
       }
-      threads.emplace_back(ConvertDoubleToBits, std::cref(input_), std::ref(bits), start, end);
-    }
-    for (auto& t : threads) {
-      t.join();
-    }
-  }
-
-  constexpr int kPasses = sizeof(uint64_t);
-  for (int pass = 0; pass < kPasses; ++pass) {
-    RadixSortPass(bits, temp, pass * 8);
-  }
-
-  {
-    std::vector<std::thread> threads;
-    for (size_t i = 0; i < num_threads; ++i) {
-      size_t start = i * block_size;
-      size_t end = std::min(start + block_size, n);
-      if (start >= n) {
-        break;
+      else {
+        local_valid &= task_data->inputs_count[0] > 0;
+        local_valid &= task_data->inputs_count[0] == task_data->outputs_count[0];
+        local_valid &= task_data->inputs_count[0] <= static_cast<size_t>(std::numeric_limits<int>::max());
       }
-      threads.emplace_back(ConvertBitsToDouble, std::cref(bits), std::ref(output_), start, end);
     }
-    for (auto& t : threads) {
-      t.join();
+
+    boost::mpi::broadcast(world_, local_valid, 0);
+    return local_valid;
+  }
+
+  bool TestTaskALL::RunImpl() {
+    const int rank = world_.rank();
+    const int size = world_.size();
+
+    size_t n = 0;
+    if (rank == 0) {
+      n = input_.size();
     }
-  }
+    boost::mpi::broadcast(world_, n, 0);
 
-  int rank, size;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
+    if (n == 0) return true;
 
-  std::vector<int> counts(size);
-  std::vector<int> displs(size);
-  int local_count = static_cast<int>(output_.size());
+    const size_t threads = std::max<size_t>(1, ppc::util::GetPPCNumThreads());
+    const size_t block = (n + threads - 1) / threads;
 
-  MPI_Gather(&local_count, 1, MPI_INT, counts.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+    if (size == 1) {
+      std::vector<uint64_t> bits(n), temp(n);
+      {
+        std::vector<std::thread> th;
+        for (size_t i = 0; i < threads; ++i) {
+          size_t start = i * block;
+          size_t end = std::min(start + block, n);
+          if (start < end)
+            th.emplace_back(ConvertDoubleToBits, std::cref(input_), std::ref(bits), start, end);
+        }
+        for (auto& t : th) t.join();
+      }
 
-  if (rank == 0) {
-    displs[0] = 0;
-    for (int i = 1; i < size; ++i) {
-      displs[i] = displs[i - 1] + counts[i - 1];
+      for (int pass = 0; pass < static_cast<int>(sizeof(uint64_t)); ++pass) {
+        RadixSortPass(bits, temp, pass * 8);
+      }
+
+      output_.resize(n);
+      {
+        std::vector<std::thread> th;
+        for (size_t i = 0; i < threads; ++i) {
+          size_t start = i * block;
+          size_t end = std::min(start + block, n);
+          if (start < end)
+            th.emplace_back(ConvertBitsToDouble, std::cref(bits), std::ref(output_), start, end);
+        }
+        for (auto& t : th) t.join();
+      }
+
+      return true;
     }
+
+    std::vector<int> sendcounts(size), displs(size);
+    for (int i = 0; i < size; ++i) {
+      sendcounts[i] = n / size + (i < static_cast<int>(n % size) ? 1 : 0);
+      displs[i] = (i == 0) ? 0 : displs[i - 1] + sendcounts[i - 1];
+    }
+
+    std::vector<double> local_input(sendcounts[rank]);
+    MPI_Scatterv(input_.data(), sendcounts.data(), displs.data(), MPI_DOUBLE,
+      local_input.data(), sendcounts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    size_t local_n = local_input.size();
+    std::vector<uint64_t> bits(local_n), temp(local_n);
+
+    {
+      std::vector<std::thread> th;
+      for (size_t i = 0; i < threads; ++i) {
+        size_t start = i * block;
+        size_t end = std::min(start + block, local_n);
+        if (start < end)
+          th.emplace_back(ConvertDoubleToBits, std::cref(local_input), std::ref(bits), start, end);
+      }
+      for (auto& t : th) t.join();
+    }
+
+    for (int pass = 0; pass < static_cast<int>(sizeof(uint64_t)); ++pass) {
+      RadixSortPass(bits, temp, pass * 8);
+    }
+
+    std::vector<double> local_sorted(local_n);
+    {
+      std::vector<std::thread> th;
+      for (size_t i = 0; i < threads; ++i) {
+        size_t start = i * block;
+        size_t end = std::min(start + block, local_n);
+        if (start < end)
+          th.emplace_back(ConvertBitsToDouble, std::cref(bits), std::ref(local_sorted), start, end);
+      }
+      for (auto& t : th) t.join();
+    }
+
+    std::vector<int> recvcounts = sendcounts;
+    std::vector<int> recvdispls = displs;
+    if (rank == 0) {
+      output_.resize(n);
+    }
+
+    MPI_Gatherv(local_sorted.data(), static_cast<int>(local_n), MPI_DOUBLE,
+      output_.data(), recvcounts.data(), recvdispls.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    if (rank == 0 && size > 1) {
+      std::deque<std::vector<double>> chunks;
+      for (int i = 0; i < size; ++i) {
+        size_t start = displs[i];
+        size_t count = sendcounts[i];
+        chunks.emplace_back(output_.begin() + start, output_.begin() + start + count);
+      }
+
+      std::mutex merge_mutex;
+      while (chunks.size() > 1) {
+        std::vector<std::thread> merge_threads;
+        std::deque<std::vector<double>> next;
+
+        while (chunks.size() >= 2) {
+          std::vector<double> a = std::move(chunks.front()); chunks.pop_front();
+          std::vector<double> b = std::move(chunks.front()); chunks.pop_front();
+
+          merge_threads.emplace_back([&next, &merge_mutex, a = std::move(a), b = std::move(b)]() mutable {
+            std::vector<double> merged = Merge(a, b);
+            std::lock_guard<std::mutex> lock(merge_mutex);
+            next.emplace_back(std::move(merged));
+            });
+        }
+
+        if (!chunks.empty()) {
+          next.push_back(std::move(chunks.front()));
+          chunks.pop_front();
+        }
+
+        for (auto& t : merge_threads) t.join();
+        chunks = std::move(next);
+      }
+
+      output_ = std::move(chunks.front());
+    }
+
+    return true;
   }
 
-  std::vector<double> global_result;
-  if (rank == 0) {
-    global_result.resize(task_data->outputs_count[0]);
+
+  bool TestTaskALL::PostProcessingImpl() {
+    if (world_.rank() == 0 && !output_.empty()) {
+      auto* out_ptr = reinterpret_cast<double*>(task_data->outputs[0]);
+      std::copy(output_.begin(), output_.end(), out_ptr);
+    }
+    return true;
   }
 
-  MPI_Gatherv(output_.data(), local_count, MPI_DOUBLE, global_result.data(), counts.data(), displs.data(), MPI_DOUBLE,
-              0, MPI_COMM_WORLD);
-
-  if (rank == 0) {
-    output_ = std::move(global_result);
-  }
-
-  return true;
-}
-
-bool TestTaskALL::PostProcessingImpl() {
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-  if (rank == 0) {
-    auto* out_ptr = reinterpret_cast<double*>(task_data->outputs[0]);
-    std::ranges::copy(output_.begin(), output_.end(), out_ptr);
-  }
-
-  return true;
-}
 }  // namespace bessonov_e_radix_sort_simple_merging_all

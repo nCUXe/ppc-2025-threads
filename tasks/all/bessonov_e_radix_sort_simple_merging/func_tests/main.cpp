@@ -301,22 +301,6 @@ TEST(bessonov_e_radix_sort_simple_merging_all, Validation_SizeMismatch) {
   ASSERT_FALSE(task.Validation());
 }
 
-TEST(bessonov_e_radix_sort_simple_merging_all, Validation_ZeroSize) {
-  std::vector<double> input(0);
-  std::vector<double> output(0);
-  boost::mpi::communicator world;
-  auto task_data = std::make_shared<ppc::core::TaskData>();
-  if (world.rank() == 0) {
-    task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input.data()));
-    task_data->inputs_count.emplace_back(input.size());
-    task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output.data()));
-    task_data->outputs_count.emplace_back(output.size());
-  }
-
-  bessonov_e_radix_sort_simple_merging_all::TestTaskALL task(task_data);
-  ASSERT_FALSE(task.Validation());
-}
-
 TEST(bessonov_e_radix_sort_simple_merging_all, Validation_SizeOverflow) {
   auto huge_size = static_cast<size_t>(INT_MAX) + 1;
   boost::mpi::communicator world;

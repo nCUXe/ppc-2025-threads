@@ -1,10 +1,7 @@
 #pragma once
 
-#include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
-#include <cstddef>
 #include <cstdint>
-#include <utility>
 #include <vector>
 
 #include "core/task/include/task.hpp"
@@ -21,14 +18,15 @@ class TestTaskALL : public ppc::core::Task {
   bool PostProcessingImpl() override;
 
  private:
-  std::vector<double> input_;
-  std::vector<double> output_;
+  std::vector<double> input_, output_;
+  boost::mpi::communicator world_;
 
   static void ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start,
                                   size_t end);
   static void ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output, size_t start,
                                   size_t end);
   static void RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift);
+  static std::vector<double> Merge(const std::vector<double>& left, const std::vector<double>& right);
 };
 
 }  // namespace bessonov_e_radix_sort_simple_merging_all
