@@ -19,7 +19,7 @@
 namespace bessonov_e_radix_sort_simple_merging_all {
 
 void TestTaskALL::ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start,
-  size_t end) {
+                                      size_t end) {
   for (size_t i = start; i < end; ++i) {
     uint64_t b = 0;
     std::memcpy(&b, &input[i], sizeof(double));
@@ -29,7 +29,7 @@ void TestTaskALL::ConvertDoubleToBits(const std::vector<double>& input, std::vec
 }
 
 void TestTaskALL::ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output, size_t start,
-  size_t end) {
+                                      size_t end) {
   for (size_t i = start; i < end; ++i) {
     uint64_t b = bits[i];
     b ^= (((b >> 63) - 1) | (1ULL << 63));
@@ -93,8 +93,8 @@ bool TestTaskALL::PreProcessingImpl() {
     }
   }
 
-  MPI_Scatterv(input_.data(), counts.data(), displs.data(), MPI_DOUBLE,
-    local_data.data(), local_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Scatterv(input_.data(), counts.data(), displs.data(), MPI_DOUBLE, local_data.data(), local_size, MPI_DOUBLE, 0,
+               MPI_COMM_WORLD);
 
   input_ = std::move(local_data);
   output_.resize(input_.size());
@@ -207,9 +207,8 @@ bool TestTaskALL::RunImpl() {
     global_result.resize(task_data->outputs_count[0]);
   }
 
-  MPI_Gatherv(output_.data(), local_count, MPI_DOUBLE,
-    global_result.data(), counts.data(), displs.data(), MPI_DOUBLE,
-    0, MPI_COMM_WORLD);
+  MPI_Gatherv(output_.data(), local_count, MPI_DOUBLE, global_result.data(), counts.data(), displs.data(), MPI_DOUBLE,
+              0, MPI_COMM_WORLD);
 
   if (rank == 0) {
     output_ = std::move(global_result);
