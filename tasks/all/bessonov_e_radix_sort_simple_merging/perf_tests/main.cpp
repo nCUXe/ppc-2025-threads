@@ -7,9 +7,9 @@
 #include <memory>
 #include <vector>
 
+#include "all/bessonov_e_radix_sort_simple_merging/include/ops_all.hpp"
 #include "core/perf/include/perf.hpp"
 #include "core/task/include/task.hpp"
-#include "all/bessonov_e_radix_sort_simple_merging/include/ops_all.hpp"
 
 TEST(bessonov_e_radix_sort_simple_merging_all, test_pipeline_run) {
   const int n = 5000000;
@@ -45,7 +45,7 @@ TEST(bessonov_e_radix_sort_simple_merging_all, test_pipeline_run) {
     auto current_time_point = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time_point - t0).count();
     return static_cast<double>(duration) * 1e-9;
-    };
+  };
 
   auto perf_results = std::make_shared<ppc::core::PerfResults>();
   auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task);
@@ -93,7 +93,7 @@ TEST(bessonov_e_radix_sort_simple_merging_all, test_task_run) {
     auto current_time_point = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time_point - t0).count();
     return static_cast<double>(duration) * 1e-9;
-    };
+  };
 
   auto perf_results = std::make_shared<ppc::core::PerfResults>();
   auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task);

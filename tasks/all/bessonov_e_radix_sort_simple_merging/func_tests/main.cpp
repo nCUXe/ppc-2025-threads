@@ -13,17 +13,17 @@
 #include "all/bessonov_e_radix_sort_simple_merging/include/ops_all.hpp"
 
 namespace {
-  std::vector<double> GenerateVector(std::size_t n, double first, double last) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> dist(first, last);
+std::vector<double> GenerateVector(std::size_t n, double first, double last) {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<double> dist(first, last);
 
-    std::vector<double> result(n);
-    for (std::size_t i = 0; i < n; ++i) {
-      result[i] = dist(gen);
-    }
-    return result;
+  std::vector<double> result(n);
+  for (std::size_t i = 0; i < n; ++i) {
+    result[i] = dist(gen);
   }
+  return result;
+}
 }  // namespace
 
 TEST(bessonov_e_radix_sort_simple_merging_all, FirstTest) {
@@ -154,9 +154,11 @@ TEST(bessonov_e_radix_sort_simple_merging_all, AllSameElementsTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_all, ExtremeValuesTest) {
-  std::vector<double> input_vector = {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest(), 0.0, -42.5, 100.0};
+  std::vector<double> input_vector = {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest(), 0.0,
+                                      -42.5, 100.0};
   std::vector<double> output_vector(input_vector.size(), 0.0);
-  std::vector<double> result_vector = {std::numeric_limits<double>::lowest(), -42.5, 0.0, 100.0, std::numeric_limits<double>::max()};
+  std::vector<double> result_vector = {std::numeric_limits<double>::lowest(), -42.5, 0.0, 100.0,
+                                       std::numeric_limits<double>::max()};
 
   boost::mpi::communicator world;
   auto task_data = std::make_shared<ppc::core::TaskData>();
