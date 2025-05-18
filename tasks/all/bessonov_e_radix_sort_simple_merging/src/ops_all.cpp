@@ -78,7 +78,7 @@ bool TestTaskALL::PreProcessingImpl() {
   MPI_Bcast(&total_size, 1, MPI_UNSIGNED_LONG, 0, MPI_COMM_WORLD);
 
   size_t local_size = total_size / size;
-  if (rank < total_size % size) {
+  if (rank < static_cast<int>(total_size % size)) {
     local_size++;
   }
 
@@ -88,7 +88,7 @@ bool TestTaskALL::PreProcessingImpl() {
 
   if (rank == 0) {
     for (int i = 0; i < size; ++i) {
-      counts[i] = total_size / size + (i < total_size % size ? 1 : 0);
+      counts[i] = total_size / size + (i < static_cast<int>(total_size % size) ? 1 : 0);
       displs[i] = i == 0 ? 0 : displs[i - 1] + counts[i - 1];
     }
   }
