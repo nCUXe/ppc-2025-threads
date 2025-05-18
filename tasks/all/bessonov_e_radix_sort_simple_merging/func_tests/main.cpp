@@ -27,9 +27,9 @@ namespace {
 }  // namespace
 
 TEST(bessonov_e_radix_sort_simple_merging_all, FirstTest) {
-  std::vector<double> input_vector = { 3.4, 1.2, 0.5, 7.8, 2.3, 4.5, 6.7, 8.9, 1.0, 0.2, 5.6, 4.3, 9.1, 1.5, 3.0 };
+  std::vector<double> input_vector = {3.4, 1.2, 0.5, 7.8, 2.3, 4.5, 6.7, 8.9, 1.0, 0.2, 5.6, 4.3, 9.1, 1.5, 3.0};
   std::vector<double> output_vector(input_vector.size(), 0.0);
-  std::vector<double> result_vector = { 0.2, 0.5, 1.0, 1.2, 1.5, 2.3, 3.0, 3.4, 4.3, 4.5, 5.6, 6.7, 7.8, 8.9, 9.1 };
+  std::vector<double> result_vector = {0.2, 0.5, 1.0, 1.2, 1.5, 2.3, 3.0, 3.4, 4.3, 4.5, 5.6, 6.7, 7.8, 8.9, 9.1};
 
   boost::mpi::communicator world;
   auto task_data = std::make_shared<ppc::core::TaskData>();
@@ -52,9 +52,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, FirstTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_all, SingleElementTest) {
-  std::vector<double> input_vector = { 42.0 };
+  std::vector<double> input_vector = {42.0};
   std::vector<double> output_vector(1, 0.0);
-  std::vector<double> result_vector = { 42.0 };
+  std::vector<double> result_vector = {42.0};
 
   boost::mpi::communicator world;
   auto task_data = std::make_shared<ppc::core::TaskData>();
@@ -77,9 +77,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, SingleElementTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_all, NegativeAndPositiveTest) {
-  std::vector<double> input_vector = { -3.2, 1.1, -7.5, 0.0, 4.4, -2.2, 3.3 };
+  std::vector<double> input_vector = {-3.2, 1.1, -7.5, 0.0, 4.4, -2.2, 3.3};
   std::vector<double> output_vector(input_vector.size(), 0.0);
-  std::vector<double> result_vector = { -7.5, -3.2, -2.2, 0.0, 1.1, 3.3, 4.4 };
+  std::vector<double> result_vector = {-7.5, -3.2, -2.2, 0.0, 1.1, 3.3, 4.4};
 
   boost::mpi::communicator world;
   auto task_data = std::make_shared<ppc::core::TaskData>();
@@ -129,9 +129,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, RandomVectorTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_all, AllSameElementsTest) {
-  std::vector<double> input_vector = { 3.14, 3.14, 3.14, 3.14 };
+  std::vector<double> input_vector = {3.14, 3.14, 3.14, 3.14};
   std::vector<double> output_vector(input_vector.size(), 0.0);
-  std::vector<double> result_vector = { 3.14, 3.14, 3.14, 3.14 };
+  std::vector<double> result_vector = {3.14, 3.14, 3.14, 3.14};
 
   boost::mpi::communicator world;
   auto task_data = std::make_shared<ppc::core::TaskData>();
@@ -154,9 +154,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, AllSameElementsTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_all, ExtremeValuesTest) {
-  std::vector<double> input_vector = { std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest(), 0.0, -42.5, 100.0 };
+  std::vector<double> input_vector = {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest(), 0.0, -42.5, 100.0};
   std::vector<double> output_vector(input_vector.size(), 0.0);
-  std::vector<double> result_vector = { std::numeric_limits<double>::lowest(), -42.5, 0.0, 100.0, std::numeric_limits<double>::max() };
+  std::vector<double> result_vector = {std::numeric_limits<double>::lowest(), -42.5, 0.0, 100.0, std::numeric_limits<double>::max()};
 
   boost::mpi::communicator world;
   auto task_data = std::make_shared<ppc::core::TaskData>();
@@ -179,9 +179,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, ExtremeValuesTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_all, TinyNumbersTest) {
-  std::vector<double> input_vector = { 1e-10, -1e-10, 1e-20, -1e-20 };
+  std::vector<double> input_vector = {1e-10, -1e-10, 1e-20, -1e-20};
   std::vector<double> output_vector(input_vector.size(), 0.0);
-  std::vector<double> result_vector = { -1e-10, -1e-20, 1e-20, 1e-10 };
+  std::vector<double> result_vector = {-1e-10, -1e-20, 1e-20, 1e-10};
 
   boost::mpi::communicator world;
   auto task_data = std::make_shared<ppc::core::TaskData>();
@@ -204,9 +204,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, TinyNumbersTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_all, DenormalNumbersTest) {
-  std::vector<double> input_vector = { 1e-310, -1e-310, 0.0 };
+  std::vector<double> input_vector = {1e-310, -1e-310, 0.0};
   std::vector<double> output_vector(input_vector.size(), 0.0);
-  std::vector<double> result_vector = { -1e-310, 0.0, 1e-310 };
+  std::vector<double> result_vector = {-1e-310, 0.0, 1e-310};
 
   boost::mpi::communicator world;
   auto task_data = std::make_shared<ppc::core::TaskData>();
@@ -229,9 +229,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, DenormalNumbersTest) {
 }
 
 TEST(bessonov_e_radix_sort_simple_merging_all, ReverseOrderTest) {
-  std::vector<double> input_vector = { 9.1, 8.9, 7.8, 6.7, 5.6, 4.5, 4.3, 3.4, 3.0, 2.3, 1.5, 1.2, 1.0, 0.5, 0.2 };
+  std::vector<double> input_vector = {9.1, 8.9, 7.8, 6.7, 5.6, 4.5, 4.3, 3.4, 3.0, 2.3, 1.5, 1.2, 1.0, 0.5, 0.2};
   std::vector<double> output_vector(input_vector.size(), 0.0);
-  std::vector<double> result_vector = { 0.2, 0.5, 1.0, 1.2, 1.5, 2.3, 3.0, 3.4, 4.3, 4.5, 5.6, 6.7, 7.8, 8.9, 9.1 };
+  std::vector<double> result_vector = {0.2, 0.5, 1.0, 1.2, 1.5, 2.3, 3.0, 3.4, 4.3, 4.5, 5.6, 6.7, 7.8, 8.9, 9.1};
 
   boost::mpi::communicator world;
   auto task_data = std::make_shared<ppc::core::TaskData>();
