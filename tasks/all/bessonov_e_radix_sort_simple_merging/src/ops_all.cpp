@@ -217,7 +217,7 @@ void TestTaskALL::HandleParallelProcess() {
     output_.resize(n);
   }
 
-  MPI_Gatherv(local_sorted.data(), static_cast<int>(local_n), MPI_DOUBLE, output_.data(), sendcounts.data(), 
+  MPI_Gatherv(local_sorted.data(), static_cast<int>(local_n), MPI_DOUBLE, output_.data(), sendcounts.data(),
               displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   if (rank == 0 && size > 1) {
