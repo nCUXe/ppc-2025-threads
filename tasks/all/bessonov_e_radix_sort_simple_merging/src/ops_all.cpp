@@ -164,8 +164,8 @@ bool TestTaskALL::RunImpl() {
   }
 
   std::vector<double> local_input(sendcounts[rank]);
-  MPI_Scatterv(input_.data(), sendcounts.data(), displs.data(), MPI_DOUBLE,
-    local_input.data(), sendcounts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Scatterv(input_.data(), sendcounts.data(), displs.data(), MPI_DOUBLE, local_input.data(), sendcounts[rank],
+               MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   size_t local_n = local_input.size();
   std::vector<uint64_t> bits(local_n), temp(local_n);
@@ -175,8 +175,7 @@ bool TestTaskALL::RunImpl() {
     for (size_t i = 0; i < threads; ++i) {
       size_t start = i * block;
       size_t end = std::min(start + block, local_n);
-      if (start < end)
-        th.emplace_back(ConvertDoubleToBits, std::cref(local_input), std::ref(bits), start, end);
+      if (start < end) th.emplace_back(ConvertDoubleToBits, std::cref(local_input), std::ref(bits), start, end);
     }
     for (auto& t : th) t.join();
   }
@@ -191,8 +190,7 @@ bool TestTaskALL::RunImpl() {
     for (size_t i = 0; i < threads; ++i) {
       size_t start = i * block;
       size_t end = std::min(start + block, local_n);
-      if (start < end)
-        th.emplace_back(ConvertBitsToDouble, std::cref(bits), std::ref(local_sorted), start, end);
+      if (start < end) th.emplace_back(ConvertBitsToDouble, std::cref(bits), std::ref(local_sorted), start, end);
     }
     for (auto& t : th) t.join();
   }
@@ -203,8 +201,8 @@ bool TestTaskALL::RunImpl() {
     output_.resize(n);
   }
 
-  MPI_Gatherv(local_sorted.data(), static_cast<int>(local_n), MPI_DOUBLE,
-    output_.data(), recvcounts.data(), recvdispls.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Gatherv(local_sorted.data(), static_cast<int>(local_n), MPI_DOUBLE, output_.data(), recvcounts.data(),
+              recvdispls.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   if (rank == 0 && size > 1) {
     std::deque<std::vector<double>> chunks;
@@ -220,14 +218,16 @@ bool TestTaskALL::RunImpl() {
       std::deque<std::vector<double>> next;
 
       while (chunks.size() >= 2) {
-        std::vector<double> a = std::move(chunks.front()); chunks.pop_front();
-        std::vector<double> b = std::move(chunks.front()); chunks.pop_front();
+        std::vector<double> a = std::move(chunks.front());
+        chunks.pop_front();
+        std::vector<double> b = std::move(chunks.front());
+        chunks.pop_front();
 
         merge_threads.emplace_back([&next, &merge_mutex, a = std::move(a), b = std::move(b)]() mutable {
           std::vector<double> merged = Merge(a, b);
           std::lock_guard<std::mutex> lock(merge_mutex);
           next.emplace_back(std::move(merged));
-          });
+        });
       }
 
       if (!chunks.empty()) {
@@ -244,7 +244,6 @@ bool TestTaskALL::RunImpl() {
 
   return true;
 }
-
 
 bool TestTaskALL::PostProcessingImpl() {
   if (world_.rank() == 0 && !output_.empty()) {
