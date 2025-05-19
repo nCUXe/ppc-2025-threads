@@ -1,5 +1,7 @@
 #include "all/bessonov_e_radix_sort_simple_merging/include/ops_all.hpp"
 
+#include <mpi.h>
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -8,14 +10,13 @@
 #include <limits>
 #include <mutex>
 #include <thread>
-#include <mpi.h>
 
 #include "core/util/include/util.hpp"
 
 namespace bessonov_e_radix_sort_simple_merging_all {
 
-void TestTaskALL::ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits,
-                                      size_t start, size_t end) {
+void TestTaskALL::ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start,
+                                      size_t end) {
   for (size_t i = start; i < end; ++i) {
     uint64_t b = 0;
     std::memcpy(&b, &input[i], sizeof(double));
@@ -24,8 +25,8 @@ void TestTaskALL::ConvertDoubleToBits(const std::vector<double>& input, std::vec
   }
 }
 
-void TestTaskALL::ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output,
-                                      size_t start, size_t end) {
+void TestTaskALL::ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output, size_t start,
+                                      size_t end) {
   for (size_t i = start; i < end; ++i) {
     uint64_t b = bits[i];
     b ^= (((b >> 63) - 1) | (1ULL << 63));
@@ -169,8 +170,8 @@ void TestTaskALL::HandleParallelProcess() {
   }
 
   std::vector<double> local_input(sendcounts[rank]);
-  MPI_Scatterv(input_.data(), sendcounts.data(), displs.data(), MPI_DOUBLE,
-    local_input.data(), sendcounts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Scatterv(input_.data(), sendcounts.data(), displs.data(), MPI_DOUBLE, local_input.data(), sendcounts[rank],
+               MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   size_t local_n = local_input.size();
   const size_t threads = std::max<size_t>(1, ppc::util::GetPPCNumThreads());
@@ -216,8 +217,8 @@ void TestTaskALL::HandleParallelProcess() {
     output_.resize(n);
   }
 
-  MPI_Gatherv(local_sorted.data(), static_cast<int>(local_n), MPI_DOUBLE,
-    output_.data(), sendcounts.data(), displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Gatherv(local_sorted.data(), static_cast<int>(local_n), MPI_DOUBLE, output_.data(), sendcounts.data(), displs.data(),
+              MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   if (rank == 0 && size > 1) {
     std::deque<std::vector<double>> chunks;
@@ -251,8 +252,7 @@ bool TestTaskALL::ValidationImpl() {
 
     if (task_data->inputs_count.empty() || task_data->outputs_count.empty()) {
       local_valid = false;
-    }
-    else {
+    } else {
       local_valid &= task_data->inputs_count[0] > 0;
       local_valid &= task_data->inputs_count[0] == task_data->outputs_count[0];
       local_valid &= task_data->inputs_count[0] <= static_cast<size_t>(std::numeric_limits<int>::max());
@@ -279,8 +279,7 @@ bool TestTaskALL::RunImpl() {
 
   if (size == 1) {
     HandleSingleProcess();
-  }
-  else {
+  } else {
     HandleParallelProcess();
   }
 

@@ -30,10 +30,10 @@ class TestTaskALL : public ppc::core::Task {
   void HandleParallelProcess();
   void MergeChunks(std::deque<std::vector<double>>& chunks);
 
-  static void ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits,
-                                  size_t start, size_t end);
-  static void ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output,
-                                  size_t start, size_t end);
+  static void ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start,
+                                  size_t end);
+  static void ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output, size_t start,
+                                  size_t end);
   static void RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift);
   static std::vector<double> Merge(const std::vector<double>& left, const std::vector<double>& right);
 };
