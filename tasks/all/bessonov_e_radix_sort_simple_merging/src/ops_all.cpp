@@ -170,6 +170,8 @@ void TestTaskALL::HandleParallelProcess() {
   const int size = world_.size();
   size_t n = input_.size();
 
+  world_.barrier();
+
   std::vector<int> sendcounts(size);
   std::vector<int> displs(size);
   for (int i = 0; i < size; ++i) {
@@ -221,6 +223,8 @@ void TestTaskALL::HandleParallelProcess() {
     }
   }
 
+  world_.barrier();
+
   if (rank == 0) {
     output_.resize(n);
   }
@@ -247,6 +251,11 @@ bool TestTaskALL::PreProcessingImpl() {
 
     auto* in_ptr = reinterpret_cast<double*>(task_data->inputs[0]);
     std::copy(in_ptr, in_ptr + task_data->inputs_count[0], input_.begin());
+  }
+  size_t input_size = input_.size();
+  boost::mpi::broadcast(world_, input_size, 0);
+  if (world_.rank() != 0) {
+    input_.resize(input_size);
   }
   return true;
 }
@@ -279,6 +288,7 @@ bool TestTaskALL::RunImpl() {
   if (rank == 0) {
     n = input_.size();
   }
+  world_.barrier();
   boost::mpi::broadcast(world_, n, 0);
 
   if (n == 0) {
