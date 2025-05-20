@@ -345,10 +345,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, Validation_MaxSize) {
   }
 
   bessonov_e_radix_sort_simple_merging_all::TestTaskALL task(task_data);
-  ASSERT_TRUE(task.Validation());
 
-  if (world.rank() == 0) {
-    delete[] dummy_input;
-    delete[] dummy_output;
-  }
+  delete[] dummy_input;
+  delete[] dummy_output;
+
+  ASSERT_TRUE(task.Validation());
 }
