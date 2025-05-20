@@ -27,7 +27,7 @@ std::vector<double> GenerateVector(std::size_t n, double first, double last) {
 }
 }  // namespace
 
-TEST(bessonov_e_radix_sort_simple_merging_all, FirstTest) {
+TEST(bessonov_e_radix_sort_simple_merging_all, BasicSortingTest) {
   std::vector<double> input_vector = {3.4, 1.2, 0.5, 7.8, 2.3, 4.5, 6.7, 8.9, 1.0, 0.2, 5.6, 4.3, 9.1, 1.5, 3.0};
   std::vector<double> output_vector(input_vector.size(), 0.0);
   std::vector<double> result_vector = {0.2, 0.5, 1.0, 1.2, 1.5, 2.3, 3.0, 3.4, 4.3, 4.5, 5.6, 6.7, 7.8, 8.9, 9.1};
@@ -325,6 +325,22 @@ TEST(bessonov_e_radix_sort_simple_merging_all, Validation_EmptyCounts) {
   if (world.rank() == 0) {
     task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input.data()));
     task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output.data()));
+  }
+
+  bessonov_e_radix_sort_simple_merging_all::TestTaskALL task(task_data);
+  ASSERT_FALSE(task.Validation());
+}
+
+TEST(bessonov_e_radix_sort_simple_merging_all, Validation_ZeroSize) {
+  std::vector<double> input(0);
+  std::vector<double> output(0);
+  boost::mpi::communicator world;
+  auto task_data = std::make_shared<ppc::core::TaskData>();
+  if (world.rank() == 0) {
+    task_data->inputs.emplace_back(reinterpret_cast<uint8_t*>(input.data()));
+    task_data->inputs_count.emplace_back(0);
+    task_data->outputs.emplace_back(reinterpret_cast<uint8_t*>(output.data()));
+    task_data->outputs_count.emplace_back(0);
   }
 
   bessonov_e_radix_sort_simple_merging_all::TestTaskALL task(task_data);
