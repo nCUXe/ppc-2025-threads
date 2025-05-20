@@ -10,6 +10,7 @@
 #include <random>
 #include <vector>
 
+#include "core/task/include/task.hpp"
 #include "all/bessonov_e_radix_sort_simple_merging/include/ops_all.hpp"
 
 namespace {

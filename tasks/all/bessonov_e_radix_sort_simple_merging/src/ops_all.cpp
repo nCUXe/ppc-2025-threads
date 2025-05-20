@@ -4,12 +4,17 @@
 
 #include <algorithm>
 #include <array>
+#include <boost/mpi/collectives.hpp>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 #include <deque>
+#include <functional>
 #include <limits>
 #include <mutex>
 #include <thread>
+#include <utility>
+#include <vector>
 
 #include "core/util/include/util.hpp"
 
@@ -223,8 +228,8 @@ void TestTaskALL::HandleParallelProcess() {
   if (rank == 0 && size > 1) {
     std::deque<std::vector<double>> chunks;
     for (int i = 0; i < size; ++i) {
-      size_t start = displs[i];
-      size_t count = sendcounts[i];
+      ptrdiff_t start = displs[i];
+      ptrdiff_t count = sendcounts[i];
       chunks.emplace_back(output_.begin() + start, output_.begin() + start + count);
     }
     MergeChunks(chunks);
@@ -289,7 +294,7 @@ bool TestTaskALL::RunImpl() {
 bool TestTaskALL::PostProcessingImpl() {
   if (world_.rank() == 0 && !output_.empty()) {
     auto* out_ptr = reinterpret_cast<double*>(task_data->outputs[0]);
-    std::copy(output_.begin(), output_.end(), out_ptr);
+    std::ranges::copy(output_, out_ptr);
   }
   return true;
 }

@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
-#include <functional>
 #include <utility>
 #include <vector>
 
@@ -28,7 +27,7 @@ class TestTaskALL : public ppc::core::Task {
 
   void HandleSingleProcess();
   void HandleParallelProcess();
-  void MergeChunks(std::deque<std::vector<double>>& chunks);
+  static void MergeChunks(std::deque<std::vector<double>>& chunks);
 
   static void ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start,
                                   size_t end);
