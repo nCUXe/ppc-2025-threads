@@ -39,6 +39,8 @@ void TestTaskTbb::ConvertToDoubles(const std::vector<uint64_t>& in, std::vector<
 }
 
 void TestTaskTbb::RadixSort(std::vector<uint64_t>& data) {
+  if (data.empty()) return;
+
   const size_t n = data.size();
   std::vector<uint64_t> temp(n);
   const int passes = 8;
@@ -47,15 +49,40 @@ void TestTaskTbb::RadixSort(std::vector<uint64_t>& data) {
     int shift = pass * 8;
     std::vector<size_t> count(256, 0);
 
-    for (size_t i = 0; i < n; i++) {
-      count[(data[i] >> shift) & 0xFF]++;
-    }
-    for (int i = 1; i < 256; i++) {
-      count[i] += count[i - 1];
-    }
+    count = tbb::parallel_reduce(
+      tbb::blocked_range<size_t>(0, n),
+      std::vector<size_t>(256, 0),
+      [&](const tbb::blocked_range<size_t>& r, std::vector<size_t> local_count) {
+        for (size_t i = r.begin(); i < r.end(); ++i) {
+          local_count[(data[i] >> shift) & 0xFF]++;
+        }
+        return local_count;
+      },
+      [](std::vector<size_t> a, const std::vector<size_t>& b) {
+        for (size_t i = 0; i < 256; ++i) {
+          a[i] += b[i];
+        }
+        return a;
+    });
+
+    tbb::parallel_scan(tbb::blocked_range<size_t>(0, 256), size_t(0),
+      [&](const tbb::blocked_range<size_t>& r, size_t sum, bool is_final_scan) {
+        size_t local_sum = sum;
+        for (size_t i = r.begin(); i < r.end(); ++i) {
+          local_sum += count[i];
+          if (is_final_scan) {
+            count[i] = local_sum;
+          }
+        }
+        return local_sum;
+    },
+    [](size_t a, size_t b) { return a + b; });
+
     for (size_t i = n; i-- > 0;) {
-      temp[--count[(data[i] >> shift) & 0xFF]] = data[i];
+      size_t bucket = (data[i] >> shift) & 0xFF;
+      temp[--count[bucket]] = data[i];
     }
+
     data.swap(temp);
   }
 }

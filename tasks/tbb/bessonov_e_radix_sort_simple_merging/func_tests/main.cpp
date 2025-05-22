@@ -23,7 +23,7 @@ std::vector<double> GenerateVector(std::size_t n, double min, double max) {
 }
 }  // namespace
 
-TEST(bessonov_e_radix_sort_simple_merging_tbb, FirstTest) {
+TEST(bessonov_e_radix_sort_simple_merging_tbb, BasicSortingTest) {
   std::vector<double> input = {3.4, 1.2, 0.5, 7.8, 2.3, 4.5, 6.7, 8.9, 1.0, 0.2, 5.6, 4.3, 9.1, 1.5, 3.0};
   std::vector<double> output(input.size(), 0.0);
   std::vector<double> expected = input;
