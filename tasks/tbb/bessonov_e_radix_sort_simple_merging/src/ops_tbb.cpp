@@ -2,6 +2,8 @@
 
 #include <oneapi/tbb/blocked_range.h>
 #include <oneapi/tbb/parallel_for.h>
+#include <oneapi/tbb/parallel_reduce.h>
+#include <oneapi/tbb/parallel_scan.h>
 #include <oneapi/tbb/task_arena.h>
 #include <tbb/tbb.h>
 
@@ -39,7 +41,10 @@ void TestTaskTbb::ConvertToDoubles(const std::vector<uint64_t>& in, std::vector<
 }
 
 void TestTaskTbb::RadixSort(std::vector<uint64_t>& data) {
-  if (data.empty()) return;
+  if (data.empty())
+  {
+    return;
+  }
 
   const size_t n = data.size();
   std::vector<uint64_t> temp(n);
