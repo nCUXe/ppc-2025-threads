@@ -41,8 +41,7 @@ void TestTaskTbb::ConvertToDoubles(const std::vector<uint64_t>& in, std::vector<
 }
 
 void TestTaskTbb::RadixSort(std::vector<uint64_t>& data) {
-  if (data.empty())
-  {
+  if (data.empty()) {
     return;
   }
 
