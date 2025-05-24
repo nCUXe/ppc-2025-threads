@@ -173,7 +173,6 @@ void TestTaskALL::HandleParallelProcess() {
 
   world_.barrier();
 
-  // Расчёт количества элементов на каждый процесс
   std::vector<int> sendcounts(size);
   std::vector<int> displs(size);
   for (int i = 0; i < size; ++i) {
@@ -183,19 +182,16 @@ void TestTaskALL::HandleParallelProcess() {
 
   std::vector<double> local_input(sendcounts[rank]);
 
-  // Заменяем MPI_Scatterv на Boost.MPI send/recv
   if (rank == 0) {
     for (int i = 0; i < size; ++i) {
       std::vector<double> chunk(input_.begin() + displs[i], input_.begin() + displs[i] + sendcounts[i]);
       if (i == 0) {
         local_input = std::move(chunk);
-      }
-      else {
+      } else {
         world_.send(i, 0, chunk);
       }
     }
-  }
-  else {
+  } else {
     world_.recv(0, 0, local_input);
   }
 
