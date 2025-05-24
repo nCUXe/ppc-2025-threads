@@ -7,6 +7,7 @@
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/collectives/broadcast.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <boost/serialization/vector.hpp>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -172,6 +173,7 @@ void TestTaskALL::HandleParallelProcess() {
 
   world_.barrier();
 
+  // Расчёт количества элементов на каждый процесс
   std::vector<int> sendcounts(size);
   std::vector<int> displs(size);
   for (int i = 0; i < size; ++i) {
@@ -180,8 +182,22 @@ void TestTaskALL::HandleParallelProcess() {
   }
 
   std::vector<double> local_input(sendcounts[rank]);
-  MPI_Scatterv(input_.data(), sendcounts.data(), displs.data(), MPI_DOUBLE, local_input.data(), sendcounts[rank],
-               MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+  // Заменяем MPI_Scatterv на Boost.MPI send/recv
+  if (rank == 0) {
+    for (int i = 0; i < size; ++i) {
+      std::vector<double> chunk(input_.begin() + displs[i], input_.begin() + displs[i] + sendcounts[i]);
+      if (i == 0) {
+        local_input = std::move(chunk);
+      }
+      else {
+        world_.send(i, 0, chunk);
+      }
+    }
+  }
+  else {
+    world_.recv(0, 0, local_input);
+  }
 
   size_t local_n = local_input.size();
   const size_t threads = std::max<size_t>(1, ppc::util::GetPPCNumThreads());
@@ -225,24 +241,28 @@ void TestTaskALL::HandleParallelProcess() {
 
   world_.barrier();
 
+  std::vector<std::vector<double>> gathered;
+  boost::mpi::gather(world_, local_sorted, gathered, 0);
+
   if (rank == 0) {
-    output_.resize(n);
-  }
-
-  MPI_Gatherv(local_sorted.data(), static_cast<int>(local_n), MPI_DOUBLE, output_.data(), sendcounts.data(),
-              displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-  if (rank == 0 && size > 1) {
-    std::deque<std::vector<double>> chunks;
-    for (int i = 0; i < size; ++i) {
-      ptrdiff_t start = displs[i];
-      ptrdiff_t count = sendcounts[i];
-      chunks.emplace_back(output_.begin() + start, output_.begin() + start + count);
+    output_.clear();
+    for (const auto& chunk : gathered) {
+      output_.insert(output_.end(), chunk.begin(), chunk.end());
     }
-    MergeChunks(chunks);
-    output_ = std::move(chunks.front());
+
+    if (size > 1) {
+      std::deque<std::vector<double>> chunks;
+      size_t offset = 0;
+      for (const auto& chunk : gathered) {
+        chunks.emplace_back(output_.begin() + offset, output_.begin() + offset + chunk.size());
+        offset += chunk.size();
+      }
+      MergeChunks(chunks);
+      output_ = std::move(chunks.front());
+    }
   }
 }
+
 
 bool TestTaskALL::PreProcessingImpl() {
   if (world_.rank() == 0) {
