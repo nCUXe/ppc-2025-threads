@@ -259,7 +259,6 @@ void TestTaskALL::HandleParallelProcess() {
   }
 }
 
-
 bool TestTaskALL::PreProcessingImpl() {
   if (world_.rank() == 0) {
     input_.resize(task_data->inputs_count[0]);
