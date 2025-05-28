@@ -229,7 +229,7 @@ void GatherAndMergeResults(const boost::mpi::communicator& world, std::vector<do
                            const std::vector<double>& local_sorted) {
   const int rank = world.rank();
   const int size = world.size();
-    
+
   std::vector<std::vector<double>> gathered;
   boost::mpi::gather(world, local_sorted, gathered, 0);
 
