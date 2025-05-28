@@ -166,10 +166,9 @@ void TestTaskALL::HandleSingleProcess() {
 }
 
 namespace {
-
 void DistributeInputData(const boost::mpi::communicator& world, const std::vector<double>& input,
-  std::vector<double>& local_input, const std::vector<int>& sendcounts,
-  const std::vector<int>& displs) {
+                         std::vector<double>& local_input, const std::vector<int>& sendcounts,
+                         const std::vector<int>& displs) {
   const int rank = world.rank();
   if (rank == 0) {
     for (int i = 0; i < world.size(); ++i) {
@@ -244,7 +243,7 @@ void GatherAndMergeResults(const boost::mpi::communicator& world, std::vector<do
       size_t offset = 0;
       for (const auto& chunk : gathered) {
         chunks.emplace_back(output_.begin() + static_cast<std::ptrdiff_t>(offset),
-          output_.begin() + static_cast<std::ptrdiff_t>(offset + chunk.size()));
+                            output_.begin() + static_cast<std::ptrdiff_t>(offset + chunk.size()));
         offset += chunk.size();
       }
       TestTaskALL::MergeChunks(chunks);
@@ -334,8 +333,7 @@ bool TestTaskALL::RunImpl() {
 
   if (size == 1) {
     HandleSingleProcess();
-  }
-  else {
+  } else {
     HandleParallelProcess();
   }
 
