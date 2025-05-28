@@ -12,28 +12,28 @@
 
 namespace bessonov_e_radix_sort_simple_merging_all {
 
-  class TestTaskALL : public ppc::core::Task {
-  public:
-    explicit TestTaskALL(ppc::core::TaskDataPtr task_data) : Task(std::move(task_data)) {}
+class TestTaskALL : public ppc::core::Task {
+ public:
+  explicit TestTaskALL(ppc::core::TaskDataPtr task_data) : Task(std::move(task_data)) {}
 
-    bool PreProcessingImpl() override;
-    bool ValidationImpl() override;
-    bool RunImpl() override;
-    bool PostProcessingImpl() override;
+  bool PreProcessingImpl() override;
+  bool ValidationImpl() override;
+  bool RunImpl() override;
+  bool PostProcessingImpl() override;
 
-    static void ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start,
-      size_t end);
-    static void ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output, size_t start,
-      size_t end);
-    static void RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift);
-    static std::vector<double> Merge(const std::vector<double>& left, const std::vector<double>& right);
-    static void MergeChunks(std::deque<std::vector<double>>& chunks);
+  static void ConvertDoubleToBits(const std::vector<double>& input, std::vector<uint64_t>& bits, size_t start,
+                                  size_t end);
+  static void ConvertBitsToDouble(const std::vector<uint64_t>& bits, std::vector<double>& output, size_t start,
+                                  size_t end);
+  static void RadixSortPass(std::vector<uint64_t>& bits, std::vector<uint64_t>& temp, int shift);
+  static std::vector<double> Merge(const std::vector<double>& left, const std::vector<double>& right);
+  static void MergeChunks(std::deque<std::vector<double>>& chunks);
 
-  private:
-    std::vector<double> input_, output_;
-    boost::mpi::communicator world_;
+ private:
+  std::vector<double> input_, output_;
+  boost::mpi::communicator world_;
 
-    void HandleSingleProcess();
-    void HandleParallelProcess();
-  };
+  void HandleSingleProcess();
+  void HandleParallelProcess();
+};
 }  // namespace bessonov_e_radix_sort_simple_merging_all
