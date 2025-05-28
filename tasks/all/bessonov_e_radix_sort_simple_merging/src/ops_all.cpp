@@ -175,18 +175,17 @@ void DistributeInputData(const boost::mpi::communicator& world, const std::vecto
     for (int i = 0; i < world.size(); ++i) {
       std::vector<double> chunk(input.begin() + displs[i], input.begin() + displs[i] + sendcounts[i]);
       if (i == 0) {
-          local_input = std::move(chunk);
+        local_input = std::move(chunk);
       } else {
-          world.send(i, 0, chunk);
+        world.send(i, 0, chunk);
       }
     }
   } else {
-      world.recv(0, 0, local_input);
-    }
+    world.recv(0, 0, local_input);
+  }
 }
 
-void ProcessLocalData(const std::vector<double>& local_input, std::vector<double>& local_sorted,
-                      size_t threads) {
+void ProcessLocalData(const std::vector<double>& local_input, std::vector<double>& local_sorted, size_t threads) {
   const size_t local_n = local_input.size();
   std::vector<uint64_t> bits(local_n);
   std::vector<uint64_t> temp(local_n);
@@ -198,12 +197,11 @@ void ProcessLocalData(const std::vector<double>& local_input, std::vector<double
       size_t start = i * block;
       size_t end = std::min(start + block, local_n);
       if (start < end) {
-          th.emplace_back(TestTaskALL::ConvertDoubleToBits, std::cref(local_input), 
-                          std::ref(bits), start, end);
+          th.emplace_back(TestTaskALL::ConvertDoubleToBits, std::cref(local_input), std::ref(bits), start, end);
       }
     }
     for (auto& t : th) {
-       t.join();
+      t.join();
     }
   }
 
@@ -246,9 +244,8 @@ void GatherAndMergeResults(const boost::mpi::communicator& world, std::vector<do
       std::deque<std::vector<double>> chunks;
       size_t offset = 0;
       for (const auto& chunk : gathered) {
-        chunks.emplace_back(
-            output_.begin() + static_cast<std::ptrdiff_t>(offset),
-            output_.begin() + static_cast<std::ptrdiff_t>(offset + chunk.size())
+        chunks.emplace_back(output_.begin() + static_cast<std::ptrdiff_t>(offset),
+                            output_.begin() + static_cast<std::ptrdiff_t>(offset + chunk.size())
         );
         offset += chunk.size();
       }
