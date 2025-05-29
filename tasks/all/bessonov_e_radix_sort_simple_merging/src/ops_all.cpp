@@ -292,8 +292,7 @@ bool TestTaskALL::RunImpl() {
 
   if (size == 1) {
     HandleSingleProcess();
-  }
-  else {
+  } else {
     HandleParallelProcess();
   }
 
