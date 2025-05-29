@@ -229,8 +229,8 @@ void TestTaskALL::HandleParallelProcess() {
     output_.resize(n);
   }
 
-  boost::mpi::gatherv(world_, local_sorted.data(), static_cast<int>(local_sorted.size()), output_.data(),
-                      sendcounts, displs, 0);
+  boost::mpi::gatherv(world_, local_sorted.data(), static_cast<int>(local_sorted.size()), output_.data(), sendcounts,
+                      displs, 0);
 
   if (rank == 0 && size > 1) {
     std::deque<std::vector<double>> chunks;
