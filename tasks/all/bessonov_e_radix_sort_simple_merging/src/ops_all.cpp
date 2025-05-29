@@ -4,9 +4,9 @@
 #include <array>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/collectives/broadcast.hpp>
-#include <boost/mpi/collectives/gather.hpp>
+#include <boost/mpi/collectives/gatherv.hpp>
+#include <boost/mpi/collectives/scatterv.hpp>
 #include <boost/mpi/communicator.hpp>
-#include <boost/serialization/vector.hpp>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -165,95 +165,6 @@ void TestTaskALL::HandleSingleProcess() {
   }
 }
 
-namespace {
-void DistributeInputData(const boost::mpi::communicator& world, const std::vector<double>& input,
-                         std::vector<double>& local_input, const std::vector<int>& sendcounts,
-                         const std::vector<int>& displs) {
-  const int rank = world.rank();
-  if (rank == 0) {
-    for (int i = 0; i < world.size(); ++i) {
-      std::vector<double> chunk(input.begin() + displs[i], input.begin() + displs[i] + sendcounts[i]);
-      if (i == 0) {
-        local_input = std::move(chunk);
-      } else {
-        world.send(i, 0, chunk);
-      }
-    }
-  } else {
-    world.recv(0, 0, local_input);
-  }
-}
-
-void ProcessLocalData(const std::vector<double>& local_input, std::vector<double>& local_sorted, size_t threads) {
-  const size_t local_n = local_input.size();
-  std::vector<uint64_t> bits(local_n);
-  std::vector<uint64_t> temp(local_n);
-
-  {
-    std::vector<std::thread> th;
-    const size_t block = (local_n + threads - 1) / threads;
-    for (size_t i = 0; i < threads; ++i) {
-      size_t start = i * block;
-      size_t end = std::min(start + block, local_n);
-      if (start < end) {
-        th.emplace_back(TestTaskALL::ConvertDoubleToBits, std::cref(local_input), std::ref(bits), start, end);
-      }
-    }
-    for (auto& t : th) {
-      t.join();
-    }
-  }
-
-  for (int pass = 0; pass < static_cast<int>(sizeof(uint64_t)); ++pass) {
-    TestTaskALL::RadixSortPass(bits, temp, pass * 8);
-  }
-
-  {
-    std::vector<std::thread> th;
-    const size_t block = (local_n + threads - 1) / threads;
-    for (size_t i = 0; i < threads; ++i) {
-      size_t start = i * block;
-      size_t end = std::min(start + block, local_n);
-      if (start < end) {
-        th.emplace_back(TestTaskALL::ConvertBitsToDouble, std::cref(bits), std::ref(local_sorted), start, end);
-      }
-    }
-    for (auto& t : th) {
-      t.join();
-    }
-  }
-}
-
-void GatherAndMergeResults(const boost::mpi::communicator& world, std::vector<double>& output_,
-                           const std::vector<double>& local_sorted) {
-  const int rank = world.rank();
-  const int size = world.size();
-
-  std::vector<std::vector<double>> gathered;
-  boost::mpi::gather(world, local_sorted, gathered, 0);
-
-  if (rank == 0) {
-    output_.clear();
-    for (const auto& chunk : gathered) {
-      output_.insert(output_.end(), chunk.begin(), chunk.end());
-    }
-
-    if (size > 1) {
-      std::deque<std::vector<double>> chunks;
-      size_t offset = 0;
-      for (const auto& chunk : gathered) {
-        chunks.emplace_back(output_.begin() + static_cast<std::ptrdiff_t>(offset),
-                            output_.begin() + static_cast<std::ptrdiff_t>(offset + chunk.size()));
-        offset += chunk.size();
-      }
-      TestTaskALL::MergeChunks(chunks);
-      output_ = std::move(chunks.front());
-    }
-  }
-}
-
-}  // namespace
-
 void TestTaskALL::HandleParallelProcess() {
   const int rank = world_.rank();
   const int size = world_.size();
@@ -269,15 +180,68 @@ void TestTaskALL::HandleParallelProcess() {
   }
 
   std::vector<double> local_input(sendcounts[rank]);
-  DistributeInputData(world_, input_, local_input, sendcounts, displs);
+  boost::mpi::scatterv(world_, input_.data(), sendcounts, displs, local_input.data(),
+                       static_cast<int>(sendcounts[rank]), 0);
 
+  size_t local_n = local_input.size();
   const size_t threads = std::max<size_t>(1, ppc::util::GetPPCNumThreads());
-  std::vector<double> local_sorted(local_input.size());
-  ProcessLocalData(local_input, local_sorted, threads);
+  const size_t block = (local_n + threads - 1) / threads;
+
+  std::vector<uint64_t> bits(local_n);
+  std::vector<uint64_t> temp(local_n);
+
+  {
+    std::vector<std::thread> th;
+    for (size_t i = 0; i < threads; ++i) {
+      size_t start = i * block;
+      size_t end = std::min(start + block, local_n);
+      if (start < end) {
+        th.emplace_back(ConvertDoubleToBits, std::cref(local_input), std::ref(bits), start, end);
+      }
+    }
+    for (auto& t : th) {
+      t.join();
+    }
+  }
+
+  for (int pass = 0; pass < static_cast<int>(sizeof(uint64_t)); ++pass) {
+    RadixSortPass(bits, temp, pass * 8);
+  }
+
+  std::vector<double> local_sorted(local_n);
+  {
+    std::vector<std::thread> th;
+    for (size_t i = 0; i < threads; ++i) {
+      size_t start = i * block;
+      size_t end = std::min(start + block, local_n);
+      if (start < end) {
+        th.emplace_back(ConvertBitsToDouble, std::cref(bits), std::ref(local_sorted), start, end);
+      }
+    }
+    for (auto& t : th) {
+      t.join();
+    }
+  }
 
   world_.barrier();
 
-  GatherAndMergeResults(world_, output_, local_sorted);
+  if (rank == 0) {
+    output_.resize(n);
+  }
+
+  boost::mpi::gatherv(world_, local_sorted.data(), static_cast<int>(local_sorted.size()), output_.data(), sendcounts,
+                      displs, 0);
+
+  if (rank == 0 && size > 1) {
+    std::deque<std::vector<double>> chunks;
+    for (int i = 0; i < size; ++i) {
+      ptrdiff_t start = displs[i];
+      ptrdiff_t count = sendcounts[i];
+      chunks.emplace_back(output_.begin() + start, output_.begin() + start + count);
+    }
+    MergeChunks(chunks);
+    output_ = std::move(chunks.front());
+  }
 }
 
 bool TestTaskALL::PreProcessingImpl() {
