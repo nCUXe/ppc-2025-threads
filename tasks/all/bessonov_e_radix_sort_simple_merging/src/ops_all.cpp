@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <array>
 #include <boost/mpi/collectives.hpp>
+#include <boost/mpi/collectives/broadcast.hpp>
+#include <boost/mpi/collectives/gatherv.hpp>
+#include <boost/mpi/collectives/scatterv.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <cmath>
 #include <cstddef>
@@ -177,7 +180,8 @@ void TestTaskALL::HandleParallelProcess() {
   }
 
   std::vector<double> local_input(sendcounts[rank]);
-  boost::mpi::scatterv(world_, input_.data(), sendcounts, displs, local_input.data(), sendcounts[rank], 0);
+  boost::mpi::scatterv(world_, input_.data(), sendcounts, displs, local_input.data(),
+                       static_cast<int>(sendcounts[rank]), 0);
 
   size_t local_n = local_input.size();
   const size_t threads = std::max<size_t>(1, ppc::util::GetPPCNumThreads());
@@ -225,7 +229,8 @@ void TestTaskALL::HandleParallelProcess() {
     output_.resize(n);
   }
 
-  boost::mpi::gatherv(world_, local_sorted.data(), local_sorted.size(), output_.data(), sendcounts, displs, 0);
+  boost::mpi::gatherv(world_, local_sorted.data(), static_cast<int>(local_sorted.size()), output_.data(),
+                      sendcounts, displs, 0);
 
   if (rank == 0 && size > 1) {
     std::deque<std::vector<double>> chunks;
