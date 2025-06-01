@@ -48,7 +48,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, BasicSortingTest) {
   test_task.PostProcessing();
 
   if (world.rank() == 0) {
-    EXPECT_EQ(output_vector, result_vector);
+    for (size_t i = 0; i < output_vector.size(); ++i) {
+      EXPECT_DOUBLE_EQ(output_vector[i], result_vector[i]);
+    }
   }
 }
 
@@ -73,7 +75,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, SingleElementTest) {
   test_task.PostProcessing();
 
   if (world.rank() == 0) {
-    EXPECT_EQ(output_vector, result_vector);
+    for (size_t i = 0; i < output_vector.size(); ++i) {
+      EXPECT_DOUBLE_EQ(output_vector[i], result_vector[i]);
+    }
   }
 }
 
@@ -98,7 +102,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, NegativeAndPositiveTest) {
   test_task.PostProcessing();
 
   if (world.rank() == 0) {
-    EXPECT_EQ(output_vector, result_vector);
+    for (size_t i = 0; i < output_vector.size(); ++i) {
+      EXPECT_DOUBLE_EQ(output_vector[i], result_vector[i]);
+    }
   }
 }
 
@@ -125,7 +131,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, RandomVectorTest) {
   test_task.PostProcessing();
 
   if (world.rank() == 0) {
-    EXPECT_EQ(output_vector, result_vector);
+    for (size_t i = 0; i < output_vector.size(); ++i) {
+      EXPECT_DOUBLE_EQ(output_vector[i], result_vector[i]);
+    }
   }
 }
 
@@ -150,7 +158,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, AllSameElementsTest) {
   test_task.PostProcessing();
 
   if (world.rank() == 0) {
-    EXPECT_EQ(output_vector, result_vector);
+    for (size_t i = 0; i < output_vector.size(); ++i) {
+      EXPECT_DOUBLE_EQ(output_vector[i], result_vector[i]);
+    }
   }
 }
 
@@ -177,7 +187,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, ExtremeValuesTest) {
   test_task.PostProcessing();
 
   if (world.rank() == 0) {
-    EXPECT_EQ(output_vector, result_vector);
+    for (size_t i = 0; i < output_vector.size(); ++i) {
+      EXPECT_DOUBLE_EQ(output_vector[i], result_vector[i]);
+    }
   }
 }
 
@@ -202,7 +214,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, TinyNumbersTest) {
   test_task.PostProcessing();
 
   if (world.rank() == 0) {
-    EXPECT_EQ(output_vector, result_vector);
+    for (size_t i = 0; i < output_vector.size(); ++i) {
+      EXPECT_DOUBLE_EQ(output_vector[i], result_vector[i]);
+    }
   }
 }
 
@@ -227,7 +241,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, DenormalNumbersTest) {
   test_task.PostProcessing();
 
   if (world.rank() == 0) {
-    EXPECT_EQ(output_vector, result_vector);
+    for (size_t i = 0; i < output_vector.size(); ++i) {
+      EXPECT_DOUBLE_EQ(output_vector[i], result_vector[i]);
+    }
   }
 }
 
@@ -252,7 +268,9 @@ TEST(bessonov_e_radix_sort_simple_merging_all, ReverseOrderTest) {
   test_task.PostProcessing();
 
   if (world.rank() == 0) {
-    EXPECT_EQ(output_vector, result_vector);
+    for (size_t i = 0; i < output_vector.size(); ++i) {
+      EXPECT_DOUBLE_EQ(output_vector[i], result_vector[i]);
+    }
   }
 }
 
